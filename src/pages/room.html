@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kev Screens</title>
+    <link rel="stylesheet" href="../styles/stars.css">
+    <link rel="stylesheet" href="../styles/room.css">
+</head>
+<body>
+    <!-- stars effects -->
+    <div class="layer1"></div>
+    <div class="layer2"></div>
+    <div class="layer3"></div>
+    <div class="layer4"></div>
+    <div class="layer5"></div>
+    <!-- main contents begin -->
+    <h1>Kev Screens</h1>
+    <div id="username">**how to get the username from home.html**</div>
+    <div id="room-number"></div>
+    <div id="container">
+        <div id="control_menu">
+            <button id="startButton">
+                <span>
+                    Start
+                </span>
+            </button>
+            <button id="stopButton"><span>Stop</span></button>
+            <button id="getSourcesButton"><span>Get Sources</span></button>
+            <select id="selectMenu"></select>
+        </div>
+        <div id="video_container">
+            <div>
+                <h4>Your screeen:</h4>
+                <video id="local-video" autoplay controls></video>
+            </div>
+            <div id="remote-video-container">
+                <video class="remote-video" autoplay controls></video>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="../../node_modules/socket.io/client-dist/socket.io.js"></script>
+<!-- <script src="/socket.io/socket.io.js"></script> -->
+<script src="../scripts/room.js"></script>
+</html>

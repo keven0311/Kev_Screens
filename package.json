@@ -1,0 +1,26 @@
+{
+  "name": "screen_share_v2",
+  "version": "1.0.0",
+  "main": "./src/app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "sass": "sass --watch src/styles/stars.scss src/styles/stars.css",
+    "server": "nodemon ./src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "electron": "^30.0.8",
+    "express": "^4.19.2",
+    "mkcert": "^3.2.0",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.1",
+    "sass": "^1.77.2"
+  }
+}

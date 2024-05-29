@@ -1,0 +1,73 @@
+
+/* stars sky: */
+@function getShadows($n){
+    $shadows:'#{random(100)}vw #{random(100)}vh #fff';
+    @for $i from 2 through $n{
+        $shadows:'#{$shadows}, #{random(100)}vw #{random(100)}vh #fff';
+    }
+    @return unquote($shadows);
+}
+
+
+$duration: 100s;
+$count: 1000;
+@for $i from 1 through 5 {
+    $durantion: $duration / 2;
+    $count: floor($count / 2);
+    .layer#{$i}{
+        $size:#{$i}px;
+        position: absolute;
+        width: $size;
+        height: $size;
+        border-radius: 50%;
+        left: 0;
+        top: 0;
+        background: red;
+        box-shadow: getShadows($count);
+        animation: moveUp $duration linear infinite;
+        &::after{
+            content: '';
+            position: fixed;
+            top: 100vh;
+            left: 0;
+            border-radius: inherit;
+            width: inherit;
+            height: inherit;
+            box-shadow: inherit;
+        }
+    }
+}
+
+@keyframes moveUp {
+    to{
+        transform: translateY(-100vh);
+    }
+}
+
+// .layer1{
+//     $size:10px;
+//     $duration:5s;
+//     position: fixed;
+//     width: $size;
+//     height: $size;
+//     border-radius: 50%;
+//     left: 0;
+//     top: 0;
+//     background: red;
+//     box-shadow: getShadows(100);
+//     animation: moveUp $duration linear infinite;
+//     &::after{
+//         content: '';
+//         position: fixed;
+//         top: 100vh;
+//         left: 0;
+//         border-radius: inherit;
+//         width: inherit;
+//         height: inherit;
+//         box-shadow: inherit;
+//     }
+// }
+
+
+
+

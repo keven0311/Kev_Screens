@@ -1,0 +1,208 @@
+html,body{
+    margin: 0;
+    padding: 0;
+    background: black;
+}
+
+h1{
+    text-align: center;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    color: white;
+    font-size: 3.5rem;
+    text-shadow: 1px -1px #fff, -1px 1px #999, -10px 10px 10px #80808080;
+}
+
+#container{
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    z-index: 1;
+}
+
+#control_menu{
+    padding: 5px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+
+/* slect dropdown: */
+:root {
+    --arrow-bg: rgba(255, 255, 255, 0.3);
+    --arrow-icon: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg);
+    --option-bg: rgb(153, 153, 153);
+    --select-bg: rgba(203, 203, 203, 0.2);
+}
+
+#control_menu select{
+    width: 25%;
+     /* Reset */
+    appearance: none;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    /* Personalize */
+    width: 20rem;
+    padding: 1rem 4rem 1rem 1rem;
+    background: var(--arrow-icon) no-repeat right 0.8em center / 1.4em,
+        linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
+    color: rgb(201, 201, 201);
+    border-radius: 0.25em;
+    box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
+/* button: */
+button{
+    width: 130px;
+    height: 49px;
+    color: #fff;
+    border-radius: 5px;
+    padding: 10px 25px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 500;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-block;
+    box-shadow:inset 2px 2px 2px 0px rgba(255,255,255,.5),
+    7px 7px 20px 0px rgba(0,0,0,.1),
+    4px 4px 5px 0px rgba(0,0,0,.1);
+    outline: none;
+
+    background: rgb(141, 199, 222);
+    background: linear-gradient(0deg, rgb(142, 214, 243) 0%, rgb(30, 74, 121) 100%);
+    width: 130px;
+    height: 40px;
+    line-height: 42px;
+    padding: 0;
+    border: none;
+}
+
+
+button span {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+button:before,
+button:after {
+    position: absolute;
+    content: "";
+    right: 0;
+    top: 0;
+    background: rgb(252, 252, 252);
+    transition: all 0.3s ease;
+}
+button:before {
+    height: 0%;
+        width: 2px;
+}
+button:after {
+    width: 0%;
+    height: 2px;
+}
+button:hover{
+    background: transparent;
+    box-shadow: none;
+}
+button:hover:before {
+    height: 100%;
+}
+button:hover:after {
+    width: 100%;
+}
+button span:hover{
+    color: rgb(255, 255, 255);
+}
+button span:before,
+button span:after {
+    position: absolute;
+    content: "";
+    left: 0;
+    bottom: 0;
+    background: rgb(255, 255, 255);
+    transition: all 0.3s ease;
+}
+button span:before {
+    width: 2px;
+    height: 0%;
+}
+button span:after {
+    width: 0%;
+    height: 2px;
+}
+button span:hover:before {
+    height: 100%;
+}
+button span:hover:after {
+    width: 100%;
+}
+      
+
+/*  Video element styleing: */
+#video_container{
+    margin-bottom: 20px;
+    flex-grow: 1;
+    /* background-color: red; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 90vh;
+    /* width: var(--window-width);
+    height: var(--window-height);
+    */
+    background-color: black;
+} 
+
+#username{
+    color:white;
+}
+h4{
+    color: white;
+}
+
+#local-video{
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    z-index: 10;
+    background-color: black;
+    position: relative;
+}
+
+.remote-video-container{
+
+}
+
+.remote-video{
+    
+}
+
+/* scroll bar: */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #acacac;
+    border-radius: 15px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #757575;
+}
+
+
