@@ -7,8 +7,12 @@
     <link rel="stylesheet" href="../styles/audience.css">
 </head>
 <body>
-    <h1>XXX is streaming</h1>
-    <video id="videoElement" controls></video>
-    <script src="../scripts/audience.js"></script>
+    <label>Enter a room number:</label>
+    <input id="room-number-input"/>
+    <button id="join-button">join</button>
+    
+    <video id="videoElement" controls autoplay></video>
 </body>
+<script src="../../node_modules/socket.io/client-dist/socket.io.js"></script>
+<script src="../scripts/audience.js"></script>
 </html>

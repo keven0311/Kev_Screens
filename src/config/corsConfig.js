@@ -7,6 +7,7 @@ const corsConfig = {
       `https://${BASE_URL}`,
       // 'https://LOCAL-DEV-IP-HERE' //if using a phone or another computer
       `https://192.168.1.55`,
+      `https://192.168.1.71`
     ],
     methods: ["GET", "POST"],
   },

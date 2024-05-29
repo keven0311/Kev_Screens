@@ -70,6 +70,22 @@ const createRoomWindow = () => {
   roomWindow.webContents.openDevTools();
 };
 
+// create audience window:
+const createAudienceWindow = () => {
+    console.log(" Audience window creating...");
+    const audienceWindow = new BrowserWindow({
+        width:800,
+        height:600,
+        webPreferences:{
+            nodeIntegration:true,
+            contextIsolation:false,
+        },
+        // autoHideMenuBar:true
+    });
+    audienceWindow.loadFile("./src/pages/audience.html");
+    audienceWindow.webContents.openDevTools();
+}
+
 // creating application main window:
 // const createMainWindow = () => {
 //     dialog.showMessageBox(null,{
@@ -120,6 +136,6 @@ ipcMain.on("create-room", () => {
   createRoomWindow();
 });
 
-ipcMain.on("join-room", () => {
-    createRoomWindow();
+ipcMain.on("audience-room", () => {
+    createAudienceWindow();
 })

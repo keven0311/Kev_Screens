@@ -1,41 +1,21 @@
 const { ipcRenderer } = require("electron");
 const peerConfiguration = require("../config/peerConfiguration");
-
 require("dotenv").config();
-const BASE_URL  = process.env.BASE_URL || "localhost";
-const PORT = process.env.PORT || 8080;
-const userName = "kev-" + Math.floor(Math.random() * 100);
-const password = "x";
-const roomId = 1;
-document.querySelector("#username").innerHTML = userName;
-document.querySelector('#room-number').innerHTML = roomId;
 
-const socket = io.connect(`https://${BASE_URL}:${PORT}`, {
-  auth: {
-    userName,
-    password,
-  }
-});
+const BASE_URL = process.env.BASE_URL || "localhost";
+const PORT = process.env.PORT || 8080;
+// const userName = "kev-" + Math.floor(Math.random() * 100);
+// const password = "x";
+const roomId = 1;
+// document.querySelector("#username").innerHTML = userName;
+document.querySelector("#room-number").innerHTML = roomId;
+
+const socket = io.connect(`https://${BASE_URL}:${PORT}`);
 
 const localVideoElement = document.querySelector("#local-video");
-const remoteVideoContainer = document.querySelector("#remote-video-container");
 
 let localStream;
-let remoteStream;
 let peerConnection;
-
-// google stun server:
-// TODO: may need create one????
-// let peerConfiguration = {
-//     iceServers:[
-//         {
-//             urls:[
-//               'stun:stun.l.google.com:19302',
-//               'stun:stun1.l.google.com:19302'
-//             ]
-//         }
-//     ]
-// }
 
 const fetchUserMedia = async () => {
   const sourceId = displaySelectMenu.value;
@@ -64,74 +44,66 @@ const fetchUserMedia = async () => {
 
 // handle start screen sharing:
 const startSharing = async () => {
+  peerConnection = new RTCPeerConnection(peerConfiguration);
+
+  localStream.getTracks().forEach((track) => {
+    peerConnection.addTrack(track, localStream);
+    console.log("streamer sending track...")
+  });
+
+  peerConnection.onicecandidate = (e) => {
+    if (e.candidate) {
+      socket.emit("icecandidate", { candidate: e.candidate, roomId });
+    }
+  };
+  socket.emit("join-room", roomId);
+
+  // if getting track from audience?
+  peerConnection.ontrack = (e) => {
+    console.log("get some track from audience: ", e);
+  };
+
   try {
-    await createPeerConnection();
-
-    peerConnection.addEventListener("icecandidate", (e) => {
-      if (e.candidate) {
-        socket.emit("signal", {
-          type: "candidate",
-          candidate: e.candidate,
-          roomId: roomId,
-        });
-      }
-    });
-
-    peerConnection.addEventListener("track", (e) => {
-      const videoElement = document.createElement("video");
-      videoElement.srcObject = e.streams[0];
-      videoElement.autoplay = true;
-      videoElement.controls = true;
-      remoteVideoContainer.appendChild(videoElement);
-    });
-
-    localStream.getTracks().forEach((track) => {
-      peerConnection.addTrack(track, localStream);
-    });
-
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
-
-    socket.emit("signal", {
-      type: "offer",
-      offer: peerConnection.localDescription,
-      roomId: roomId,
-    });
-  } catch (error) {
-    console.error("Error starting sharing:", error);
+    socket.emit("offer", { offer: peerConnection.localDescription, roomId });
+  } catch (err) {
+    console.error("Error creating offer (streamer): ", err);
   }
 };
 
-// creating PEER connection:
-const createPeerConnection = () => {
-  peerConnection = new RTCPeerConnection(peerConfiguration);
+// add new ICE candidate:
+const addNewIceCandidate = async (iceCandidate) => {
+  try {
+    await peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate));
+    console.log("Added Ice Candidate!");
+  } catch (err) {
+    console.error("Error adding ICE candidate: ", err);
+  }
 };
 
-// handle incoming signals:
-socket.on("signal", async (data) => {
-  if (!peerConnection) await createPeerConnection();
+// socket handle received ICE candidate:
+socket.on("icecandidate", async (data) => {
+  await addNewIceCandidate(data.candidate);
+});
 
-  switch (data.type) {
-    case "offer":
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.offer)
-      );
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      socket.emit("signal", {
-        type: "answer",
-        answer: peerConnection.localDescription,
-        roomId: roomId,
-      });
-      break;
-    case "answer":
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(data.answer)
-      );
-      break;
-    case "candidate":
-      await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-      break;
+// socket handle incoming offer
+// socket.on('offer', async (offer) => {
+//     try {
+//         await createPeerConnection({offer})
+//     } catch (err) {
+
+//     }
+// })
+
+// socket handle incoming answer
+socket.on("answer", async (data) => {
+  try {
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
+  } catch (err) {
+    console.error("Error setting remote description: ", err);
   }
 });
 

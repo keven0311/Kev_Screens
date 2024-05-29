@@ -3,13 +3,13 @@ const fs = require('fs');
 const https = require('https')
 const path = require('path')
 const express = require('express');
-const app = express();
 const socketio = require('socket.io');
 const corsConfig = require('./config/corsConfig')
 
 const PORT = process.env.PORT;
 const BASE_URL = process.env.BASE_URL || "localhost";
 
+const app = express();
 app.use(express.static(path.join(__dirname,'pages')))
 
 // key and cert for running HTTPS:
@@ -25,45 +25,39 @@ expressServer.listen(PORT, () => {
     console.log( `Express server running on https://${BASE_URL}:${PORT}`)
 });
 
-const offers = [];
-const connectedSockets = {};
 
 io.on('connection',(socket)=>{
     console.log("Someone has connected",socket.id);
-    const userName = socket.handshake.auth.userName;
-    const password = socket.handshake.auth.password;
+    // const userName = socket.handshake.auth.userName;
+    // const password = socket.handshake.auth.password;
 
-    if(password !== "x"){
-        socket.disconnect(true);
-        return;
-    }
-    connectedSockets[socket.id] = {
-        socket,
-        userName
-    }
-
-    socket.on('create-room', roomId => {
-        console.log(`${userName} is creating a room...`)
-        socket.join(roomId);
-        socket.emit('room-created',roomId)
-    });
+    // if(password !== "x"){
+    //     socket.disconnect(true);
+    //     return;
+    // }
 
     socket.on("join-room", (roomId) => {
-        console.log(`${userName} is joining the room...`)
+        console.log(`${socket.id} is joining the room : ${roomId}...`);
         socket.join(roomId);
-        socket.to(roomId).emit('user-joined',socket.id);
-    })
+    });
 
-    socket.on("signal", (data) => {
-        const {roomId, signalData} = data;
-        socket.to(roomId).emit('signal',{
-            signalData,
-            socketId:socket.id
-        })
-    })
+    socket.on("offer", (data) =>{
+        console.log(`Recived offer from ${data}`)
+        socket.to(data.roomId).emit('offer', data);
+    });
+
+    socket.on("answer", (data) => {
+        console.log(`Recivied answer of:  ${data}`)
+        socket.to(data.roomId).emit("answer",data);
+    });
+
+    socket.on("icecandidate", (data) => {
+        console.log(`Recived ICECandidate of: ${data}`)
+        socket.to(data.roomId).emit('icecandidate',data);
+    });
 
     socket.on("disconnect", () => {
-        delete connectedSockets[socket.id]
-    })
+        console.log("User disconnected: ",socket.id)
+    });
 
 });
