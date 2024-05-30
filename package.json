@@ -9,7 +9,7 @@
     "server": "nodemon ./src/server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "kaichong lin",
   "license": "ISC",
   "description": "",
   "dependencies": {

@@ -41,19 +41,20 @@ io.on('connection',(socket)=>{
         socket.join(roomId);
     });
 
+    //getting offer from streamer, and send data to all audiences
     socket.on("offer", (data) =>{
-        console.log(`Recived offer from ${data}`)
-        socket.to(data.roomId).emit('offer', data);
+        console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
+        socket.to(data.roomId).emit('offer', {socketId: socket.id, ...data});
     });
 
     socket.on("answer", (data) => {
-        console.log(`Recivied answer of:  ${data}`)
-        socket.to(data.roomId).emit("answer",data);
+        console.log(`Recivied answer of:  ${data.socketId} in room ${data.roomId}`)
+        socket.to(data.roomId).emit("answer",{socketId: socket.id, ...data});
     });
 
     socket.on("icecandidate", (data) => {
-        console.log(`Recived ICECandidate of: ${data}`)
-        socket.to(data.roomId).emit('icecandidate',data);
+        console.log(`Recived ICECandidate of:  from ${data.socketId} in room ${data.roomId}`)
+        socket.to(data.roomId).emit('icecandidate',{socketId: socket.id, ...data});
     });
 
     socket.on("disconnect", () => {

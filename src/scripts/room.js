@@ -6,7 +6,7 @@ const BASE_URL = process.env.BASE_URL || "localhost";
 const PORT = process.env.PORT || 8080;
 // const userName = "kev-" + Math.floor(Math.random() * 100);
 // const password = "x";
-const roomId = 1;
+const roomId = "xxx";
 // document.querySelector("#username").innerHTML = userName;
 document.querySelector("#room-number").innerHTML = roomId;
 
@@ -50,13 +50,15 @@ const startSharing = async () => {
     peerConnection.addTrack(track, localStream);
     console.log("streamer sending track...")
   });
+  
+  socket.emit("join-room", roomId);
 
   peerConnection.onicecandidate = (e) => {
     if (e.candidate) {
-      socket.emit("icecandidate", { candidate: e.candidate, roomId });
+      console.log("streamer onICECandidate even triggered: ",e.candidate);
+      socket.emit("icecandidate", { candidate: e.candidate, roomId, socketId: socket.id });
     }
   };
-  socket.emit("join-room", roomId);
 
   // if getting track from audience?
   peerConnection.ontrack = (e) => {
@@ -65,8 +67,9 @@ const startSharing = async () => {
 
   try {
     const offer = await peerConnection.createOffer();
+    console.log("streamer offer created: ",offer)
     await peerConnection.setLocalDescription(offer);
-    socket.emit("offer", { offer: peerConnection.localDescription, roomId });
+    socket.emit("offer", { offer: peerConnection.localDescription, roomId, socketId: socket.id });
   } catch (err) {
     console.error("Error creating offer (streamer): ", err);
   }
@@ -76,7 +79,7 @@ const startSharing = async () => {
 const addNewIceCandidate = async (iceCandidate) => {
   try {
     await peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate));
-    console.log("Added Ice Candidate!");
+    console.log("Added Ice Candidate!",iceCandidate);
   } catch (err) {
     console.error("Error adding ICE candidate: ", err);
   }
@@ -84,21 +87,33 @@ const addNewIceCandidate = async (iceCandidate) => {
 
 // socket handle received ICE candidate:
 socket.on("icecandidate", async (data) => {
+  console.log("reciving icecandidate from server: ",data.candidate)
   await addNewIceCandidate(data.candidate);
 });
 
 // socket handle incoming offer
-// socket.on('offer', async (offer) => {
-//     try {
-//         await createPeerConnection({offer})
-//     } catch (err) {
-
-//     }
-// })
+socket.on('offer', async (data) => {
+  console.log("streamer reciving offer: ", data)
+  try {
+      await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.offer)
+    );
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+    socket.emit("answer", {
+      answer: peerConnection.localDescription,
+      roomId,
+      socketId: socket.id
+    });
+  } catch (err) {
+    console.error("Error handling offer: ", err);
+  }
+})
 
 // socket handle incoming answer
 socket.on("answer", async (data) => {
   try {
+    console.log('reciving answer from server: ',data.answer);
     await peerConnection.setRemoteDescription(
       new RTCSessionDescription(data.answer)
     );
