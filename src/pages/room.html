@@ -16,8 +16,16 @@
     <div class="layer5"></div>
     <!-- main contents begin -->
     <h1>Kev Screens</h1>
-    <div id="username">**how to get the username from home.html**</div>
-    <div id="room-number"></div>
+    <div id="room-info-container">
+        <div id="room-number"></div>
+        <div id="room-number-input-div">
+            <label id="inp-label">
+                <input id="room-number-input"/>
+                <span class="label">Enter a room number:</span>
+                <span class="focus-bg"></span>
+            </label>
+        </div>
+    </div>
     <div id="container">
         <div id="control_menu">
             <button id="startButton">
@@ -30,13 +38,7 @@
             <select id="selectMenu"></select>
         </div>
         <div id="video_container">
-            <div>
-                <h4>Your screeen:</h4>
-                <video id="local-video" autoplay controls></video>
-            </div>
-            <div id="remote-video-container">
-                
-            </div>
+            <video id="local-video" autoplay controls></video>
         </div>
     </div>
 </body>
