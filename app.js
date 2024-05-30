@@ -3,7 +3,7 @@ const {
   BrowserWindow,
   desktopCapturer,
   ipcMain,
-  dialog
+  dialog,
 } = require("electron");
 const path = require("path");
 
@@ -38,12 +38,14 @@ const createHomeWindow = () => {
           height: 1080,
           webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false,
+            contextIsolation: true,
+            // preload: path.join(__dirname, './preload.js'),
           },
-          // autoHideMenuBar: true
+          autoHideMenuBar: true,
         });
         homeWindow.loadFile(path.join(__dirname, "/src/pages/home.html"));
-        homeWindow.webContents.openDevTools();
+        // homeWindow.webContents.openDevTools();
+        // console.log(" home window created!", path.join(__dirname, './preload.js'))
       } else {
         console.log("User denied permission to capture screen.");
         app.quit();
@@ -64,10 +66,12 @@ const createRoomWindow = () => {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    // autoHideMenuBar: true
+    autoHideMenuBar: true,
   });
+  roomWindow.setAutoHideMenuBar(true);
+  roomWindow.autoHideMenuBar();
   roomWindow.loadFile("./src/pages/room.html");
-  roomWindow.webContents.openDevTools();
+  // roomWindow.webContents.openDevTools();
 };
 
 // create audience window:
@@ -80,7 +84,7 @@ const createAudienceWindow = () => {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    // autoHideMenuBar:true
+    autoHideMenuBar: true,
   });
   audienceWindow.loadFile("./src/pages/audience.html");
   audienceWindow.webContents.openDevTools();

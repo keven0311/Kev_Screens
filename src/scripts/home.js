@@ -1,5 +1,7 @@
-require("dotenv").config();
-const { ipcRenderer } = require("electron");
+// require("dotenv").config();
+// const { ipcRenderer } = require("electron");
+const elec = window.env;
+console.log("elec: ",elec)
 const BASE_URL = process.env.BASE_URL;
 const PORT = process.env.PORT;
 
@@ -25,12 +27,12 @@ createRoomBtn.addEventListener("click", () => {
   socket.emit("create-room", roomNumber);
 });
 
-const socket = io.connect(`https://${BASE_URL}:${PORT}`, {
-  auth: {
-    userName,
-    password,
-  },
-});
+// const socket = io.connect(`https://${BASE_URL}:${PORT}`, {
+//   auth: {
+//     userName,
+//     password,
+//   },
+// });
 
 audienceBtn.addEventListener("click", () => {
   ipcRenderer.send("audience-room");

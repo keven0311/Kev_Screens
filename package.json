@@ -6,7 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
     "sass": "sass --watch src/styles/stars.scss src/styles/stars.css",
-    "server": "nodemon ./src/server.js"
+    "server": "nodemon ./src/server.js",
+    "startDev": "npx electronmon ."
   },
   "keywords": [],
   "author": "kaichong lin",
@@ -20,6 +21,7 @@
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
+    "electronmon": "^2.0.3",
     "nodemon": "^3.1.1",
     "sass": "^1.77.2"
   }

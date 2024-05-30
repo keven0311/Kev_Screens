@@ -4,7 +4,7 @@ dotenv.config();
 
 console.log("Preload script loaded");
 
-contextBridge.exposeInMainWorld("electron", {
-  ipcRenderer: ipcRenderer,
+contextBridge.exposeInMainWorld("env", {
+  ipcRenderer: ipcRenderer(),
   env: process.env,
 });
