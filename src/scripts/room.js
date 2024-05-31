@@ -1,9 +1,7 @@
-const { ipcRenderer } = require("electron");
-const peerConfiguration = require("../config/peerConfiguration");
-require("dotenv").config();
+const peerConfiguration = window.peerConfig.config
 
-const BASE_URL = process.env.BASE_URL || "localhost";
-const PORT = process.env.PORT || 8080;
+const BASE_URL = window.env.BASE_URL;
+const PORT = window.env.PORT;
 
 let roomId;
 
@@ -158,7 +156,7 @@ const getSourcesButton = document.getElementById("getSourcesButton");
 
 async function getVideoSource() {
   console.log("getVideoSource called");
-  const inputSources = await ipcRenderer.invoke("getSources");
+  const inputSources = await window.ipcRenderer.invoke("getSources");
   inputSources.forEach((source) => {
     const element = document.createElement("option");
     element.value = source.id;

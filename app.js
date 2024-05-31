@@ -39,13 +39,11 @@ const createHomeWindow = () => {
           webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
-            // preload: path.join(__dirname, './preload.js'),
+            preload: path.join(__dirname, './preload.js'),
           },
-          autoHideMenuBar: true,
+          // autoHideMenuBar: true,
         });
         homeWindow.loadFile(path.join(__dirname, "/src/pages/home.html"));
-        // homeWindow.webContents.openDevTools();
-        // console.log(" home window created!", path.join(__dirname, './preload.js'))
       } else {
         console.log("User denied permission to capture screen.");
         app.quit();
@@ -64,14 +62,12 @@ const createRoomWindow = () => {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, './preload.js'),
     },
     autoHideMenuBar: true,
   });
-  roomWindow.setAutoHideMenuBar(true);
-  roomWindow.autoHideMenuBar();
   roomWindow.loadFile("./src/pages/room.html");
-  // roomWindow.webContents.openDevTools();
 };
 
 // create audience window:
@@ -82,30 +78,17 @@ const createAudienceWindow = () => {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, './preload.js'),
     },
     autoHideMenuBar: true,
   });
   audienceWindow.loadFile("./src/pages/audience.html");
-  audienceWindow.webContents.openDevTools();
+  // audienceWindow.webContents.openDevTools();
 };
 
 app.on("ready", () => {
   createHomeWindow();
-
-  // Configure Electron to trust the root CA certificate
-  const rootCaCertPath = path.join(__dirname, "certs/ca.crt");
-  const rootCaCert = fs.readFileSync(rootCaCertPath);
-  app.setAsDefaultProtocolClient("https", (scheme, args, workingDirectory) => {
-    const serverUrl = args[1];
-    const parsedUrl = new URL(serverUrl);
-    const cert = parsedUrl.host.split(":")[0];
-    if (cert === "192.168.1.55") {
-      const caCert = rootCaCert.toString();
-      https.globalAgent.options.ca = [caCert];
-    }
-    return true;
-  });
 });
 
 app.on("window-all-closed", () => {

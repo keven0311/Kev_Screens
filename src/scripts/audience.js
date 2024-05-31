@@ -1,8 +1,8 @@
-const peerConfiguration = require("../config/peerConfiguration");
+const peerConfiguration = window.peerConfig.config
 
-require("dotenv").config();
-const BASE_URL = process.env.BASE_URL;
-const PORT = process.env.PORT;
+
+const BASE_URL = window.env.BASE_URL;
+const PORT = window.env.PORT;
 
 let roomId;
 let peerConnection;
