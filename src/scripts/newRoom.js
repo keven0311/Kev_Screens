@@ -61,12 +61,12 @@ async function fetchUserMedia(){
 
 function connectSocketIo(){
     socket = io.connect(`https://${BASE_URL}:${PORT}`);
+    setupSocketListeners();
     // join socket room:
     socket.on('connect', () => {
         socket.emit("join-room",roomId);
         console.log("streamer joined room: ", roomId, socket.id);
     })
-    setupSocketListeners();
 }
 
 function createPeerConnection(){
@@ -107,10 +107,10 @@ async function connectToPeer(socketId){
 
     //create offer and emit offer:
     const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    await pc.setLocalDescription(new RTCSessionDescription(offer));
 
     socket.emit("offer",{
-        offer:offer,
+        offer:pc.localDescription,
         socketId: socket.id,
         roomId:roomId
     })
@@ -137,14 +137,27 @@ async function handleOffer(socketId, offer){
 }
 
 async function handleAnswer(socketId, answer){
-    const pc = peerConnectionMap.get(socketId);
-    await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    try {
+        let pc = peerConnectionMap.get(socketId);
+        if(!pc){
+            pc = createPeerConnection();
+            peerConnectionMap.set(socketId,pc)
+        }
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        console.log("pc in handleAnswer after setRemoteDes: ",pc)
+    } catch (err) {
+        console.error("Erro handleAnswer: ", err)
+    }
 }
 
 async function handleIceCandidate(socketId, candidate){
-    const pc = peerConnectionMap.get(socketId);
-    await pc.addIceCandidate(new RTCIceCandidate(candidate));
-    console.log("streamer recieved ICE: ", candidate)
+    try {
+        const pc = peerConnectionMap.get(socketId);
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log("streamer recieved ICE, PC in map: ", candidate)
+    } catch (err) {
+        console.error("Error handleIceCandidate: ",err)
+    }
 }
 
 function handlePeerDisconnection(socketId){

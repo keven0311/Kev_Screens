@@ -43,22 +43,21 @@ function connectSocketIo() {
 
   socket.on("offer", async (data) => {
     console.log("Audience receiving offer");
-    const { socketId, offer } = data;
-    const pc = await createPeerConnection(socketId)
-    await handleOffer(socketId,offer,pc)
+    const { socketId , offer } = data;
+    await handleOffer( socketId, offer);
     
   });
 
   socket.on("answer", async (data) => {
     console.log('Receiving answer from server: ', data.answer);
-    await handleAnswer(data.socketId, data.answer);
+    const { socketId, answer } = data;
+    await handleAnswer(socketId, answer);
   });
 
   socket.on('peer-joined', async (data) => {
     console.log('Peer joined the room');
-    const pc = await createPeerConnection(data.socketId);
-    console.log("pc in peer-joined event: ", pc)
-    await sendOffer(data.socketId,pc);
+    const { socketId } = data;
+    await sendOffer(socketId);
   });
 
   socket.on('peer-disconnected', (data) => {
@@ -78,102 +77,72 @@ async function handleJoinRoom() {
 }
 
 function createPeerConnection(socketId) {
-  const peerConnection = new RTCPeerConnection(peerConfiguration);
+  const pc = new RTCPeerConnection(peerConfiguration);
 
-//   peerConnection.ontrack = (e) => {
-//     videoElement.srcObject = e.streams[0];
-//     console.log("Audience receiving track...");
-//   };
-
-//   peerConnection.onicecandidate = (e) => {
-//     console.log("event onicecandidate: ", e);
-//     if (e.candidate) {
-//       console.log("Audience emitting ICE: ", e.candidate);
-//       socket.emit("icecandidate", { candidate: e.candidate, roomId, socketId });
-//     } else {
-//       console.log("NO candidate detected!!!");
-//     }
-//   };
-//  peerConnections.set(socketId, peerConnection);
-
-    return new Promise((resolve) => {
-        peerConnection.ontrack = (e) =>{
-            videoElement.srcObject = e.streams[0];
-            console.log("Audience reiving track...")
-            peerConnections.set(socketId, peerConnection);
-            resolve(peerConnection);
-        };
-        peerConnection.onicecandidate = (e) => {
-            if(e.candidate){
-                socket.emit("icecandidate", {candidate: e.candidate, roomId, socketId:socket.id});
-            }else{
-                console.log("NO candidate detected!!!")
-                peerConnections.set(socketId, peerConnection);
-                resolve(peerConnection);
-            }
-        };
-    })
-  
-  
-}
-
-async function sendOffer(socketId, pc) {   
-  try {
-    const offer = await pc.createOffer();
-    console.log("Audience offer created: ", offer);
-    await pc.setLocalDescription(offer);
-    socket.emit("offer", { offer: pc.localDescription, roomId, socketId: socket.id });
-    console.log("Audience offer sent!");
-  } catch (err) {
-    console.error("Error creating offer (audience): ", err);
+  pc.ontrack = e => {
+    videoElement.srcObject = e.streams[0];
+    console.log("recived track...")
   }
+
+  pc.onicecandidate = e => {
+    if(e.candidate){
+        socket.emit("icecandidate", { candidate:e.candidate, roomId, socketId: socket.id})
+        console.log("audience icecandidate sent...")
+    }
+  }
+
+  peerConnections.set(socketId, pc);
+  return pc;
 }
 
-async function handleOffer(socketId, offer,pc) {
-//   const peerConnection = peerConnections.get(socketId);
-//   try {
-//     await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-//     console.log("Audience received offer set to remote description: ", offer);
-//     const answer = await peerConnection.createAnswer();
-//     await peerConnection.setLocalDescription(answer);
-//     socket.emit("answer", { answer: answer, roomId, socketId: socket.id });
-//     console.log("Audience emitted answer: ", answer);
-//   } catch (err) {
-//     console.error("Error handling offer: ", err);
-//   }
+async function sendOffer(socketId) {  
     try {
-        await pc.setRemoteDescription(new RTCSessionDescription(offer))
-        console.log("Audience received offer set to remoteDes: ", offer);
+        if(!peerConnections.get(socketId)){
+            const pc = createPeerConnection(socketId);
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(new RTCSessionDescription(offer));
+            socket.emit("offer", {offer: pc.localDescription, roomId, socketId: socket.id})
+        }else{
+            const pc = peerConnections.get(socketId);
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(new RTCSessionDescription(offer));
+            socket.emit("offer", {offer: pc.localDescription, roomId, socketId: socket.id})
+        }
+    } catch (err) {
+        console.error("Erroring sending offer: ",err)
+    } 
+}
+
+async function handleOffer(socketId, offer) {
+    try {
+        const pc = createPeerConnection(socketId);
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit("answer",{ answer:answer, roomId, socketId: socket.id})
+        socket.emit("answer", { answer:pc.localDescription,roomId, socketId: socket.id, });
+        console.log("answer emited...")
     } catch (err) {
-        
+        console.log("Error handleOffer: ",err);
     }
 }
 
 async function handleAnswer(socketId, answer) {
-//   if (peerConnections.get(socketId)) {
-    const peerConnection = peerConnections.get(socketId);
-    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-    console.log('Set received answer, set to remote description...TRUE');
-//   } else {
-//     createPeerConnection(socketId);
-//     const peerConnection = peerConnections.get(socketId);
-//     await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-//     console.log('Set received answer, set to remote description...FALSE');
-//   }
+    try {
+        const pc = peerConnections.get(socketId);
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    } catch (err) {
+        console.error("Erroring handleAnswer: ",err);
+    }
 }
 
-async function addNewIceCandidate(socketId, iceCandidate) {
-  const peerConnection = peerConnections.get(socketId);
-  try {
-    console.log("Adding ICE candidate: ", iceCandidate);
-    await peerConnection.addIceCandidate(new RTCIceCandidate(iceCandidate));
-    console.log("Added ICE Candidate!", iceCandidate);
-  } catch (err) {
-    console.error("Error adding ICE candidate: ", err);
-  }
+async function addNewIceCandidate(socketId, candidate) {
+ try {
+    const pc = peerConnections.get(socketId);
+    await pc.addIceCandidate(new RTCIceCandidate(candidate))
+    console.log("ICE candidate added!")
+ } catch (err) {
+    console.error("Erro adding ICE candidate: ",err)
+ }
 }
 
 function handlePeerDisconnection(socketId) {
