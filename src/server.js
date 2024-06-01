@@ -37,8 +37,10 @@ io.on('connection',(socket)=>{
     // }
 
     socket.on("join-room", (roomId) => {
-        console.log(`${socket.id} is joining the room : ${roomId}...`);
         socket.join(roomId);
+        console.log(`${socket.id} is joined the room : ${roomId}...`);
+        socket.emit('room-joined');
+        socket.to(roomId).emit("room-joined")
     });
 
     //getting offer from streamer, and send data to all audiences

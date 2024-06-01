@@ -72,17 +72,22 @@ const startSharing = async () => {
   });
 
   socket.emit("join-room", roomId);
+  console.log("Joining room: ", roomId, socket.id)
 
-  peerConnection.onicecandidate = (e) => {
-    if (e.candidate) {
-      console.log("streamer onICECandidate even triggered: ", e.candidate);
-      socket.emit("icecandidate", {
-        candidate: e.candidate,
-        roomId,
-        socketId: socket.id,
-      });
-    }
-  };
+  socket.on("room-joined", async () => {
+    console.log("streamer received room join confirmation")
+    peerConnection.onicecandidate = (e) => {
+      if (e.candidate) {
+        console.log("streamer emitting ICE: ", e.candidate);
+        socket.emit("icecandidate", {
+          candidate: e.candidate,
+          roomId,
+          socketId: socket.id,
+        });
+      }
+    };
+  })
+
 
   // if getting track from audience?
   peerConnection.ontrack = (e) => {
@@ -98,6 +103,7 @@ const startSharing = async () => {
       roomId,
       socketId: socket.id,
     });
+    console.log("streamer offer sent!")
   } catch (err) {
     console.error("Error creating offer (streamer): ", err);
   }
@@ -133,8 +139,10 @@ socket.on("offer", async (data) => {
       roomId,
       socketId: socket.id,
     });
+    console.log("stream recived offer, emitting answer back: ", answer)
   } catch (err) {
     console.error("Error handling offer: ", err);
+    console.log(peerConnection)
   }
 });
 
