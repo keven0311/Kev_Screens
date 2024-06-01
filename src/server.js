@@ -36,27 +36,29 @@ io.on('connection',(socket)=>{
     //     return;
     // }
 
-    socket.on("join-room", (roomId) => {
+    socket.on('join-room', (roomId) => {
         socket.join(roomId);
-        console.log(`${socket.id} is joined the room : ${roomId}...`);
-        socket.emit('room-joined');
-        socket.to(roomId).emit("room-joined")
+        socket.to(roomId).emit('peer-joined', { socketId: socket.id });
+        
+        socket.on('disconnect', () => {
+            socket.to(roomId).emit('peer-disconnected', {socketId:socket.id});
+        });
     });
 
     //getting offer from streamer, and send data to all audiences
     socket.on("offer", (data) =>{
         console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
-        socket.to(data.roomId).emit('offer', {socketId: socket.id, ...data});
+        socket.to(data.roomId).emit('offer', data);
     });
 
     socket.on("answer", (data) => {
         console.log(`Recivied answer of:  ${data.socketId} in room ${data.roomId}`)
-        socket.to(data.roomId).emit("answer",{socketId: socket.id, ...data});
+        socket.to(data.roomId).emit("answer",data);
     });
 
     socket.on("icecandidate", (data) => {
         console.log(`Recived ICECandidate of:  from ${data.socketId} in room ${data.roomId}`)
-        socket.to(data.roomId).emit('icecandidate',{socketId: socket.id, ...data});
+        socket.to(data.roomId).emit('icecandidate',data);
     });
 
     socket.on("disconnect", () => {
