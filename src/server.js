@@ -38,6 +38,7 @@ io.on('connection',(socket)=>{
 
     socket.on('join-room', (roomId) => {
         socket.join(roomId);
+        console.log(`${socket.id} joined room: ${roomId}`)
         socket.to(roomId).emit('peer-joined', { socketId: socket.id });
         
         socket.on('disconnect', () => {
@@ -52,12 +53,12 @@ io.on('connection',(socket)=>{
     });
 
     socket.on("answer", (data) => {
-        console.log(`Recivied answer of:  ${data.socketId} in room ${data.roomId}`)
+        console.log(`Recivied answer ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit("answer",data);
     });
 
     socket.on("icecandidate", (data) => {
-        console.log(`Recived ICECandidate of:  from ${data.socketId} in room ${data.roomId}`)
+        console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('icecandidate',data);
     });
 

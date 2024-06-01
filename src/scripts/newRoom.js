@@ -24,11 +24,8 @@ async function startStreaming(){
     }
     await fetchUserMedia();
     connectSocketIo();
-    setupSocketListeners();
-
-    // join socket room:
-    socket.emit("join-room",roomId);
-    console.log("streamer joined room: ", roomId, socket.id)
+    // setupSocketListeners();
+    
     // start&stop button toggle:
     startButton.disabled = true;
     stopButton.disabled = false;
@@ -64,9 +61,15 @@ async function fetchUserMedia(){
 
 function connectSocketIo(){
     socket = io.connect(`https://${BASE_URL}:${PORT}`);
+    // join socket room:
+    socket.on('connect', () => {
+        socket.emit("join-room",roomId);
+        console.log("streamer joined room: ", roomId, socket.id);
+    })
+    setupSocketListeners();
 }
 
-async function createPeerConnection(peerId){
+function createPeerConnection(){
     const pc = new RTCPeerConnection(peerConfiguration);
 
     // Add local stream to the new PeerConnection:
@@ -75,38 +78,40 @@ async function createPeerConnection(peerId){
     });
     // handle ICE candidate:
     pc.onicecandidate = e => {
+        console.log("event in onicecandidate: ",e)
         if(e.candidate){
             socket.emit("icecandidate",{
-                type:"icecandidate",
                 candidate: e.candidate,
-                peerId: peerId,
-                roomId: roomId
+                roomId: roomId,
+                socketId: socket.id
             })
+            console.log("streamer ICE sent.")
+        }else{
+            console.log("NO candidate detect!!!")
         }
     }
     // handle connection state changes
-    pc.onconnectionstatechange = () => {
+    pc.onconnectionstatechange = (e) => {
         if(pc.connectionState === 'connected'){
-            console.log(`Peer ${peerId} is connected.`)
+            console.log(`Peer is connected.`,e)
         }
     }
     // returing the PeerConnection object:
     return pc;
 }
 
-async function connectToPeer(peerId){
-    const pc = await createPeerConnection(peerId);
+async function connectToPeer(socketId){
+    const pc = createPeerConnection();
     // setting PeerConnection to the MAP:
-    peerConnectionMap.set(peerId,pc);
+    peerConnectionMap.set(socketId,pc);
 
     //create offer and emit offer:
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
     socket.emit("offer",{
-        type:"offer",
         offer:offer,
-        peerId: peerId,
+        socketId: socket.id,
         roomId:roomId
     })
 }
@@ -114,10 +119,10 @@ async function connectToPeer(peerId){
 
 
 // PeerConnection even handling:
-async function handleOffer(peerId, offer){
-    const pc = await createPeerConnection(peerId);
+async function handleOffer(socketId, offer){
+    const pc = createPeerConnection(socketId);
     // adding new pc to the MAP:
-    peerConnectionMap.set(peerId, pc);
+    peerConnectionMap.set(socketId, pc);
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
     // create and emit answer:
@@ -125,29 +130,29 @@ async function handleOffer(peerId, offer){
     await pc.setLocalDescription(answer);
 
     socket.emit("answer",{
-        type:"answer",
         answer:answer,
-        peerId: peerId,
+        socketId: socket.id,
         roomId:roomId
     })
 }
 
-async function handleAnswer(peerId, answer){
-    const pc = peerConnectionMap.get(peerId);
+async function handleAnswer(socketId, answer){
+    const pc = peerConnectionMap.get(socketId);
     await pc.setRemoteDescription(new RTCSessionDescription(answer));
 }
 
-async function handleIceCandidate(peerId, candidate){
-    const pc = peerConnectionMap.get(peerId);
+async function handleIceCandidate(socketId, candidate){
+    const pc = peerConnectionMap.get(socketId);
     await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    console.log("streamer recieved ICE: ", candidate)
 }
 
-function handlePeerDisconnection(peerId){
-    const pc = peerConnectionMap.get(peerId);
+function handlePeerDisconnection(socketId){
+    const pc = peerConnectionMap.get(socketId);
     if(pc){
         pc.close();
-        peerConnectionMap.delete(peerId);
-        console.log(`Peer ${peerId} disconnected...`);
+        peerConnectionMap.delete(socketId);
+        console.log(`Peer ${socketId} disconnected...`);
     }
 }
 
@@ -210,9 +215,9 @@ stopButton.onclick = () => {
         roomNumberInputDiv.style.display = null;
     
         // Close and clean up all peer connections
-        peerConnectionMap.forEach((pc, peerId) => {
+        peerConnectionMap.forEach((pc, socketId) => {
             pc.close();
-            peerConnectionMap.delete(peerId);
+            peerConnectionMap.delete(socketId);
         });
     
         // Disconnect from socket

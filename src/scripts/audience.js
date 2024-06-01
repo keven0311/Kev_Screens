@@ -96,8 +96,8 @@ socket.on("offer", async (data) => {
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
     socket.emit("answer", {
-      answer: peerConnection.localDescription,
-      roomId,
+      answer: answer,
+      roomId:roomId,
       socketId: socket.id
     });
     console.log("audience emited answer: ", answer)
