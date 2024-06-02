@@ -29,7 +29,7 @@ function connectSocketIo() {
 
   socket.on('connect', () => {
     console.log(`Connected to server with socket ID: ${socket.id}`);
-    socket.emit("join-room", roomId);
+    socket.emit("join-room", {roomId , userName: "shabi", role: "audience"});
     console.log("Joining room: ", roomId, socket.id);
   });
 
@@ -39,6 +39,7 @@ function connectSocketIo() {
 
   socket.on("icecandidate", async (data) => {
     console.log("Audience receiving ICE candidate: ", data.candidate);
+    if(data.role == "audience") return;
     await addNewIceCandidate(data.socketId, data.candidate);
   });
 
@@ -51,7 +52,8 @@ function connectSocketIo() {
 
   socket.on("answer", async (data) => {
     console.log('Receiving answer from server: ', data.answer);
-    const { socketId, answer } = data;
+    const { socketId, answer, role } = data;
+    if(role === "audience") return;
     await handleAnswer(socketId, answer);
   });
 
@@ -61,10 +63,10 @@ function connectSocketIo() {
     // await sendOffer(socketId);
   });
 
-  socket.on('peer-disconnected', (data) => {
-    console.log(`Peer ${data.socketId} disconnected`);
-    handlePeerDisconnection(data.socketId);
-  });
+//   socket.on('peer-disconnected', (data) => {
+//     console.log(`Peer ${data.socketId} disconnected`);
+//     handlePeerDisconnection(data.socketId);
+//   });
 }
 
 // Main functions
@@ -89,23 +91,12 @@ function createPeerConnection(socketId) {
         
         pc.onicecandidate = e => {
             if(e.candidate){
-                socket.emit("icecandidate", { candidate:e.candidate, roomId, socketId: socket.id})
+                socket.emit("icecandidate", { candidate:e.candidate, roomId, socketId: socket.id, role:"audience"})
                 console.log("audience icecandidate sent...")
             }else{
                 console.log("onicecandidate event triggered, but NO candidate!")
             }
         }
-
-        // pc.ondatachannel = e => {
-        //     const reciveChannel = e.channel;
-        //     reciveChannel.onmessage = handleChatMessage;
-        //     reciveChannel.onopen = () => {console.log("datachannel opened!")}
-        //     reciveChannel.onclose = () => {console.log("datachannel closed!")}
-        // }
-
-        // const sendChannel = pc.createDataChannel("chat-room");
-        // sendChannel.onopen = () => { console.log("sendChannel opened!")}
-        // sendChannel.onclose = () => {console.log("sendChannel closed!")}
 
         pc.onicegatheringstatechange = e => {
             console.log("onicegatheringstatechange event triggerd!!!")
@@ -161,7 +152,7 @@ async function handleOffer(socketId, offer) {
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit("answer", { answer:pc.localDescription,roomId, socketId: socket.id, });
+        socket.emit("answer", { answer:pc.localDescription,roomId, socketId: socket.id, role: "audience" });
         console.log("answer emited...")
     } catch (err) {
         console.error("Error handleOffer: ",err);
@@ -178,12 +169,6 @@ async function handleAnswer(socketId, answer) {
     }
 }
 
-// chat room events:
-// function handleChatMessage(e){
-//     const msg = document.createElement("p")
-//     msg.textContent = e.data;
-//     chatRoom.appendChild(msg);
-// }
 
 async function addNewIceCandidate(socketId, candidate) {
  try {
@@ -195,11 +180,11 @@ async function addNewIceCandidate(socketId, candidate) {
  }
 }
 
-function handlePeerDisconnection(socketId) {
-  const peerConnection = peerConnections.get(socketId);
-  if (peerConnection) {
-    peerConnection.close();
-    peerConnections.delete(socketId);
-    console.log(`Peer ${socketId} disconnected and peer connection closed.`);
-  }
-}
+// function handlePeerDisconnection(socketId) {
+//   const peerConnection = peerConnections.get(socketId);
+//   if (peerConnection) {
+//     peerConnection.close();
+//     peerConnections.delete(socketId);
+//     console.log(`Peer ${socketId} disconnected and peer connection closed.`);
+//   }
+// }

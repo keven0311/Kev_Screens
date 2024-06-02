@@ -24,7 +24,6 @@ async function startStreaming(){
     }
     await fetchUserMedia();
     connectSocketIo();
-    // setupSocketListeners();
     
     // start&stop button toggle:
     startButton.disabled = true;
@@ -70,7 +69,7 @@ function connectSocketIo(){
     setupSocketListeners();
     // join socket room:
     socket.on('connect', () => {
-        socket.emit("join-room",roomId);
+        socket.emit("join-room",{roomId, userName:"streamer", role:"streamer"});
         console.log("streamer joined room: ", roomId, socket.id);
     })
 }
@@ -84,12 +83,13 @@ function createPeerConnection(){
     });
     // handle ICE candidate:
     pc.onicecandidate = e => {
-        console.log("event in onicecandidate: ",e)
+        console.log("event in onicecandidate: ", e)
         if(e.candidate){
             socket.emit("icecandidate",{
                 candidate: e.candidate,
                 roomId: roomId,
-                socketId: socket.id
+                socketId: socket.id,
+                role: "streamer"
             })
             console.log("streamer ICE sent.")
         }else{
@@ -104,14 +104,14 @@ function createPeerConnection(){
     }
 
     // add stream to viewers event:
-    pc.onnegotiationneeded = async () =>{
-        if(!pc.localDescription){
-            await pc.setLocalDescription(await pc.createOffer());
-            socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
-        }
-        console.log("signalingState in onnegotiationneeded event: ", pc.signalingState)
-        console.log("streamer emitted offer in onnegotiationneeded event: ","remoteDES: ",pc.remoteDescription)
-    }
+    // pc.onnegotiationneeded = async () =>{
+    //     if(!pc.localDescription || !pc.remoteDescription){
+    //         await pc.setLocalDescription(await pc.createOffer());
+    //         socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
+    //     }
+    //     console.log("signalingState in onnegotiationneeded event: ", pc.signalingState)
+    //     console.log("streamer emitted offer in onnegotiationneeded event: ","remoteDES: ",pc.remoteDescription)
+    // }
 
     // checking recived track:
     pc.ontrack = e => {
@@ -123,19 +123,20 @@ function createPeerConnection(){
 }
 
 async function connectToPeer(socketId){
+    console.log("connectToPeer function called")
     const pc = createPeerConnection();
     // setting PeerConnection to the MAP:
     peerConnectionMap.set(socketId,pc);
 
-    //create offer and emit offer:
-    // const offer = await pc.createOffer();
-    // await pc.setLocalDescription(new RTCSessionDescription(offer));
+    // create offer and emit offer:
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(new RTCSessionDescription(offer));
 
-    // socket.emit("offer",{
-    //     offer:pc.localDescription,
-    //     socketId: socket.id,
-    //     roomId:roomId
-    // })
+    socket.emit("offer",{
+        offer:pc.localDescription,
+        socketId: socket.id,
+        roomId:roomId
+    })
 }
 
 
@@ -158,7 +159,8 @@ async function handleOffer(socketId, offer){
         socket.emit("answer",{
             answer:pc.localDescription,
             socketId: socket.id,
-            roomId:roomId
+            roomId:roomId,
+            role:"streamer"
         })
         console.log("Streamer created, set, and emitted localDes: ",pc.localDescription)
     } catch (err) {

@@ -31,26 +31,47 @@ const audieceList = new Map();
 
 io.on('connection',(socket)=>{
     console.log("Someone has connected",socket.id);
-    const currentUser = socket.handshake.auth.userName;
+    const currentUserName = socket.handshake.auth.userName;
     // const password = socket.handshake.auth.password;
 
     // if(password !== "x"){
     //     socket.disconnect(true);
     //     return;
     // }
+    const currentAudience = audieceList.get(socket.io)
 
     socket.on('join-room', (data) => {
+        console.log("recived data on 'join-room': ", data)
         const { roomId , role, userName } = data
         socket.join(roomId);
-        console.log(`${currentUser}: ${socket.id} joined room: ${roomId}`)
+        console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
         socket.to(roomId).emit('peer-joined', { socketId: socket.id, role, userName });
+        if(!currentAudience || role != "streamer"){
+            audieceList.set(socket.id, {
+                role: role,
+                userName: userName,
+                joinedRoom: roomId
+            })
+        }else{
+            currentAudience.joinedRoom = roomId;
+        }
         
         socket.on('disconnect', () => {
             socket.to(roomId).emit('peer-disconnected', {socketId:socket.id});
+            if(audieceList.has(socket.id)){
+                audieceList.delete(socket.id)
+            }
         });
     });
 
-    //getting offer from streamer, and send data to all audiences
+    socket.on("leaveRoom", (roomId) => {
+        socket.leave(roomId);
+        currentAudience.joinedRoom = null;
+        console.log(`${socket.id} left room: ${roomId}`)
+    })
+
+
+    // RTCPeerConnection signling services:
     socket.on("offer", (data) =>{
         console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('offer', data);
@@ -65,6 +86,13 @@ io.on('connection',(socket)=>{
         console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('icecandidate',data);
     });
+
+
+    // Chat room message singling services:
+    socket.on("chat-room", (data) => {
+
+    })
+
 
     socket.on("disconnect", () => {
         console.log("User disconnected: ",socket.id)
