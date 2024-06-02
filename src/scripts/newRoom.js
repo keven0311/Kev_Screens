@@ -69,8 +69,10 @@ function connectSocketIo(){
     setupSocketListeners();
     // join socket room:
     socket.on('connect', () => {
-        socket.emit("join-room",{roomId, userName:"streamer", role:"streamer"});
-        console.log("streamer joined room: ", roomId, socket.id);
+        // socket.emit("join-room",{roomId, userName:"streamer", role:"streamer"});
+        // TODO: dynanmic username here:
+        socket.emit('createroom',{ userName:"leece", role:"streamer"})
+        console.log("streamer created room with room id of: ", socket.id);
     })
 }
 

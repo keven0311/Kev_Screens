@@ -29,6 +29,7 @@ function connectSocketIo() {
 
   socket.on('connect', () => {
     console.log(`Connected to server with socket ID: ${socket.id}`);
+    // TODO: dynanmic roomId && userName here with availabel room id:
     socket.emit("join-room", {roomId , userName: "shabi", role: "audience"});
     console.log("Joining room: ", roomId, socket.id);
   });

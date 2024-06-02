@@ -26,7 +26,8 @@ expressServer.listen(PORT, () => {
 });
 
 // variables:
-const audieceList = new Map();
+const audienceList = new Map();
+const availabelRoom = new Map();
 
 
 io.on('connection',(socket)=>{
@@ -38,52 +39,80 @@ io.on('connection',(socket)=>{
     //     socket.disconnect(true);
     //     return;
     // }
-    const currentAudience = audieceList.get(socket.io)
+    const currentAudience = audienceList.get(socket.io)
 
+
+    // streaming room related events:
     socket.on('join-room', (data) => {
         console.log("recived data on 'join-room': ", data)
         const { roomId , role, userName } = data
+        
         socket.join(roomId);
-        console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
+        
+        // emitting 'peer-joined' message to streamer to establish PC:
         socket.to(roomId).emit('peer-joined', { socketId: socket.id, role, userName });
-        if(!currentAudience || role != "streamer"){
-            audieceList.set(socket.id, {
+        
+        if(!currentAudience && role != "streamer"){
+            audienceList.set(socket.id, {
                 role: role,
                 userName: userName,
                 joinedRoom: roomId
             })
-        }else{
+        }else if(currentAudience){
             currentAudience.joinedRoom = roomId;
         }
         
-        socket.on('disconnect', () => {
-            socket.to(roomId).emit('peer-disconnected', {socketId:socket.id});
-            if(audieceList.has(socket.id)){
-                audieceList.delete(socket.id)
-            }
-        });
+       console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
+       console.log(`someone joined room, audienceList : ${JSON.stringify([...audienceList])}`);
+       console.log(`availabeRooms: ${JSON.stringify([...availabelRoom])}`);
     });
 
     socket.on("leaveRoom", (roomId) => {
         socket.leave(roomId);
+        // reset audience joinedRoom:
         currentAudience.joinedRoom = null;
+        // deleting the streaming room if it's a streamer:
+        if(role == "streamer"){
+            availabelRoom.delete(roomId);
+        }
         console.log(`${socket.id} left room: ${roomId}`)
+    })
+
+    socket.on("createroom", (data) => {
+        const { userName,role } = data
+        const currentRoom = availabelRoom.get(socket.id);
+        if(!currentRoom && role === "streamer"){
+            availabelRoom.set(socket.id, {
+                host: userName,
+                roomId: socket.id
+                // TODO: add needed information about the room
+            })
+            console.log("new streamer room creted: ", `roomId : ${socket.id}`)
+        }
+        socket.join(socket.id);
+        console.log(`available rooms: ${JSON.stringify([...availabelRoom])}`)
+    })
+
+    socket.on("availabelrooms", () => {
+        const parsedMap = JSON.stringify([...availabelRoom])
+        console.log("parsedMap: ",parsedMap)
+        socket.to(socket.id).emit("availabelrooms", parsedMap)
     })
 
 
     // RTCPeerConnection signling services:
     socket.on("offer", (data) =>{
-        console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
+        // console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('offer', data);
     });
 
     socket.on("answer", (data) => {
-        console.log(`Recivied answer ${data.socketId} in room ${data.roomId}`)
+        // console.log(`Recivied answer ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit("answer",data);
     });
 
     socket.on("icecandidate", (data) => {
-        console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
+        // console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('icecandidate',data);
     });
 
@@ -94,8 +123,25 @@ io.on('connection',(socket)=>{
     })
 
 
-    socket.on("disconnect", () => {
-        console.log("User disconnected: ",socket.id)
+    socket.on('disconnect', () => {
+        const disconnectedAudience = audienceList.get(socket.id)
+        // deleting audience from list && emit 'peer-disconnected' message to streamer when disconnected:
+        if(disconnectedAudience){
+            const { userName, joinedRoom, role } = disconnectedAudience;
+            if(joinedRoom){
+                socket.to(joinedRoom).emit('peer-disconnected', {socketId:socket.id});
+            }
+            audienceList.delete(socket.id)
+        }
+        
+        // deleting room when streamer left:
+        if(availabelRoom.has(socket.id)){
+            availabelRoom.delete(socket.id);
+        }
+
+        console.log(`Peer disconnected: ${socket.id}`)
+        console.log(`updated available rooms: ${JSON.stringify([...availabelRoom])}`)
+        console.log(`updated audience list: ${JSON.stringify([...audienceList])}`)
     });
 
 });
