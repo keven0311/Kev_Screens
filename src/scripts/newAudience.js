@@ -8,6 +8,7 @@ const roomNumberInfo = document.querySelector("#room-number-info");
 const roomNumberDisplay = document.querySelector("#room-number-display");
 const roomNumberInput = document.querySelector("#room-number-input");
 const joinBtn = document.querySelector("#join-button");
+const chatRoom = document.querySelector("#chat-room")
 
 // Variables
 let socket;
@@ -57,7 +58,7 @@ function connectSocketIo() {
   socket.on('peer-joined', async (data) => {
     console.log('Peer joined the room');
     const { socketId } = data;
-    await sendOffer(socketId);
+    // await sendOffer(socketId);
   });
 
   socket.on('peer-disconnected', (data) => {
@@ -77,37 +78,74 @@ async function handleJoinRoom() {
 }
 
 function createPeerConnection(socketId) {
-  const pc = new RTCPeerConnection(peerConfiguration);
+    return new Promise((resolve) => {
 
-  pc.ontrack = e => {
-    videoElement.srcObject = e.streams[0];
-    console.log("recived track...")
-  }
+        const pc = new RTCPeerConnection(peerConfiguration);
+      
+        pc.ontrack = e => {
+            console.log("recived track...");
+            videoElement.srcObject = e.streams[0];
+        }
+        
+        pc.onicecandidate = e => {
+            if(e.candidate){
+                socket.emit("icecandidate", { candidate:e.candidate, roomId, socketId: socket.id})
+                console.log("audience icecandidate sent...")
+            }else{
+                console.log("onicecandidate event triggered, but NO candidate!")
+            }
+        }
 
-  pc.onicecandidate = e => {
-    if(e.candidate){
-        socket.emit("icecandidate", { candidate:e.candidate, roomId, socketId: socket.id})
-        console.log("audience icecandidate sent...")
-    }
-  }
+        // pc.ondatachannel = e => {
+        //     const reciveChannel = e.channel;
+        //     reciveChannel.onmessage = handleChatMessage;
+        //     reciveChannel.onopen = () => {console.log("datachannel opened!")}
+        //     reciveChannel.onclose = () => {console.log("datachannel closed!")}
+        // }
 
-  peerConnections.set(socketId, pc);
-  return pc;
+        // const sendChannel = pc.createDataChannel("chat-room");
+        // sendChannel.onopen = () => { console.log("sendChannel opened!")}
+        // sendChannel.onclose = () => {console.log("sendChannel closed!")}
+
+        pc.onicegatheringstatechange = e => {
+            console.log("onicegatheringstatechange event triggerd!!!")
+            // if(pc.iceGatheringState === 'complete'){
+            //     pc.createOffer()
+            //         .then(offer => pc.setLocalDescription(offer))
+            //         .then(() => {
+            //             socket.emit("offer", {offer: pc.localDescription, roomId, socketId: socket.id})
+            //         })
+            //         .catch(err => console.error("Error creating offer in onicegaheringstatechange event: ",err))
+            // }
+        }
+
+        pc.onnegotiationneeded = async () =>{
+            console.log("...onnegotiationneed event trigged...",pc)
+            // if(!pc.localDescription){
+            //     const offer = await pc.createOffer();
+            //     await pc.setLocalDescription(new RTCSessionDescription(offer));
+            //     socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
+            //     console.log("localDES: ",pc.localDescription,"remoteDES: ",pc.remoteDescription)
+            // }else{
+            //     socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
+            //     console.log("localDES: ",pc.localDescription,"remoteDES: ",pc.remoteDescription)
+            // }
+        }
+        
+        peerConnections.set(socketId, pc);
+        console.log("NEW PeerConnection created.",pc)
+        resolve(pc);
+    })
+  
 }
 
 async function sendOffer(socketId) {  
     try {
-        if(!peerConnections.get(socketId)){
-            const pc = createPeerConnection(socketId);
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(new RTCSessionDescription(offer));
-            socket.emit("offer", {offer: pc.localDescription, roomId, socketId: socket.id})
-        }else{
-            const pc = peerConnections.get(socketId);
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(new RTCSessionDescription(offer));
-            socket.emit("offer", {offer: pc.localDescription, roomId, socketId: socket.id})
-        }
+        let pc = await createPeerConnection(socketId)
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(new RTCSessionDescription(offer))
+        socket.emit("offer", { offer: pc.localDescription, roomId, socketId:socket.id})
+        console.log(" offer emitted...(sendOffer)",`localDES: ${pc.localDescription} &&&& remoteDES: ${pc.remoteDescription}`)
     } catch (err) {
         console.error("Erroring sending offer: ",err)
     } 
@@ -115,14 +153,18 @@ async function sendOffer(socketId) {
 
 async function handleOffer(socketId, offer) {
     try {
-        const pc = createPeerConnection(socketId);
+        let pc = peerConnections.get(socketId);
+        if(!pc){
+            pc = await createPeerConnection(socketId);
+        }
+
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
         socket.emit("answer", { answer:pc.localDescription,roomId, socketId: socket.id, });
         console.log("answer emited...")
     } catch (err) {
-        console.log("Error handleOffer: ",err);
+        console.error("Error handleOffer: ",err);
     }
 }
 
@@ -130,10 +172,18 @@ async function handleAnswer(socketId, answer) {
     try {
         const pc = peerConnections.get(socketId);
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        console.log("audience recived answer, set to remoteDES: ", pc.remoteDescription)
     } catch (err) {
         console.error("Erroring handleAnswer: ",err);
     }
 }
+
+// chat room events:
+// function handleChatMessage(e){
+//     const msg = document.createElement("p")
+//     msg.textContent = e.data;
+//     chatRoom.appendChild(msg);
+// }
 
 async function addNewIceCandidate(socketId, candidate) {
  try {

@@ -25,10 +25,13 @@ expressServer.listen(PORT, () => {
     console.log( `Express server running on https://${BASE_URL}:${PORT}`)
 });
 
+// variables:
+const audieceList = new Map();
+
 
 io.on('connection',(socket)=>{
     console.log("Someone has connected",socket.id);
-    // const userName = socket.handshake.auth.userName;
+    const currentUser = socket.handshake.auth.userName;
     // const password = socket.handshake.auth.password;
 
     // if(password !== "x"){
@@ -36,10 +39,11 @@ io.on('connection',(socket)=>{
     //     return;
     // }
 
-    socket.on('join-room', (roomId) => {
+    socket.on('join-room', (data) => {
+        const { roomId , role, userName } = data
         socket.join(roomId);
-        console.log(`${socket.id} joined room: ${roomId}`)
-        socket.to(roomId).emit('peer-joined', { socketId: socket.id });
+        console.log(`${currentUser}: ${socket.id} joined room: ${roomId}`)
+        socket.to(roomId).emit('peer-joined', { socketId: socket.id, role, userName });
         
         socket.on('disconnect', () => {
             socket.to(roomId).emit('peer-disconnected', {socketId:socket.id});

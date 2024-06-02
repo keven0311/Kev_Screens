@@ -47,7 +47,13 @@ async function fetchUserMedia(){
           chromeMediaSourceId: sourceId,
         },
       },
-      audio: false,
+        audio:false
+    //   audio: {
+    //     mandatory:{
+    //         chromeMediaSource: "desktop",
+    //         chromeMediaSourceId: sourceId,
+    //     }
+    //   },
     });
     localVideoElement.srcObject = stream;
     localStream = stream;
@@ -87,7 +93,7 @@ function createPeerConnection(){
             })
             console.log("streamer ICE sent.")
         }else{
-            console.log("NO candidate detect!!!")
+            console.log("onicecandidate event triggered, but NO candidate!")
         }
     }
     // handle connection state changes
@@ -96,7 +102,23 @@ function createPeerConnection(){
             console.log(`Peer is connected.`,e)
         }
     }
+
+    // add stream to viewers event:
+    pc.onnegotiationneeded = async () =>{
+        if(!pc.localDescription){
+            await pc.setLocalDescription(await pc.createOffer());
+            socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
+        }
+        console.log("signalingState in onnegotiationneeded event: ", pc.signalingState)
+        console.log("streamer emitted offer in onnegotiationneeded event: ","remoteDES: ",pc.remoteDescription)
+    }
+
+    // checking recived track:
+    pc.ontrack = e => {
+        console.log("Streamer recived track: ", e.track? e.track: null)
+    }
     // returing the PeerConnection object:
+    console.log("NEW PeerConnection created.",pc)
     return pc;
 }
 
@@ -106,34 +128,42 @@ async function connectToPeer(socketId){
     peerConnectionMap.set(socketId,pc);
 
     //create offer and emit offer:
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(new RTCSessionDescription(offer));
+    // const offer = await pc.createOffer();
+    // await pc.setLocalDescription(new RTCSessionDescription(offer));
 
-    socket.emit("offer",{
-        offer:pc.localDescription,
-        socketId: socket.id,
-        roomId:roomId
-    })
+    // socket.emit("offer",{
+    //     offer:pc.localDescription,
+    //     socketId: socket.id,
+    //     roomId:roomId
+    // })
 }
 
 
 
 // PeerConnection even handling:
 async function handleOffer(socketId, offer){
-    const pc = createPeerConnection(socketId);
-    // adding new pc to the MAP:
-    peerConnectionMap.set(socketId, pc);
-
-    await pc.setRemoteDescription(new RTCSessionDescription(offer));
-    // create and emit answer:
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    socket.emit("answer",{
-        answer:answer,
-        socketId: socket.id,
-        roomId:roomId
-    })
+    try {
+        let pc = peerConnectionMap.get(socketId);
+        // adding new pc to the MAP:
+        if(!pc){
+            pc = createPeerConnection();
+            peerConnectionMap.set(socketId, pc);
+        }
+    
+        await pc.setRemoteDescription(new RTCSessionDescription(offer));
+        console.log("Streamer recived offer set to remoteDES: ", pc.remoteDescription);
+        // create and emit answer:
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(new RTCSessionDescription(answer));
+        socket.emit("answer",{
+            answer:pc.localDescription,
+            socketId: socket.id,
+            roomId:roomId
+        })
+        console.log("Streamer created, set, and emitted localDes: ",pc.localDescription)
+    } catch (err) {
+        console.error("Error handleOffer: ",err)
+    }
 }
 
 async function handleAnswer(socketId, answer){
@@ -153,8 +183,12 @@ async function handleAnswer(socketId, answer){
 async function handleIceCandidate(socketId, candidate){
     try {
         const pc = peerConnectionMap.get(socketId);
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log("streamer recieved ICE, PC in map: ", candidate)
+        if(pc){
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+            console.log("streamer recieved ICE, PC in map: ", candidate)
+        }else{
+            console.log("Peer connection not found for socketId: ", socketId);
+        }
     } catch (err) {
         console.error("Error handleIceCandidate: ",err)
     }
@@ -176,6 +210,7 @@ function setupSocketListeners(){
     })
 
     socket.on("offer", async (data) => {
+        console.log("reciving offer from server...:",data.offer)
         await handleOffer(data.socketId, data.offer);
     })
     
