@@ -4,22 +4,22 @@ const PORT = window.env.PORT;
 
 // element selecting:
 const localVideoElement = document.querySelector("#local-video");
-const roomNumberEl = document.querySelector("#room-number");
-const roomNumberInputDiv = document.querySelector("#room-number-input-div");
-const roomNumberInput = document.querySelector("#room-number-input");
+const nickNameEl = document.querySelector("#nick-name");
+const nickNameInputDiv = document.querySelector("#nick-name-input-div");
+const nickNameInput = document.querySelector("#nick-name-input");
 const displaySelectMenu = document.getElementById("selectMenu");
 const getSourcesButton = document.getElementById("getSourcesButton");
 
 // variables initializing:
 let socket;
-let roomId;
+let nickName;
 let localStream;
 let peerConnectionMap = new Map();
 
 // main functions:
 async function startStreaming(){
-    if (!roomId) {
-        alert("Please enter a room number first, before start streaming...");
+    if (!nickName) {
+        alert("Please enter a Nick Name first, before start streaming...");
         return;
     }
     await fetchUserMedia();
@@ -57,8 +57,8 @@ async function fetchUserMedia(){
     localVideoElement.srcObject = stream;
     localStream = stream;
     // HTML element dispaly toggle:
-    roomNumberEl.style.display = "block";
-    roomNumberInputDiv.style.display = "none";
+    nickNameEl.style.display = "block";
+    nickNameInputDiv.style.display = "none";
   } catch (err) {
     console.error(err);
   }
@@ -69,9 +69,9 @@ function connectSocketIo(){
     setupSocketListeners();
     // join socket room:
     socket.on('connect', () => {
-        // socket.emit("join-room",{roomId, userName:"streamer", role:"streamer"});
+        // socket.emit("join-room",{ userName: nickName, role:"streamer"});
         // TODO: dynanmic username here:
-        socket.emit('createroom',{ userName:"leece", role:"streamer"})
+        socket.emit('createroom',{ userName: nickName, role:"streamer"})
         console.log("streamer created room with room id of: ", socket.id);
     })
 }
@@ -89,7 +89,7 @@ function createPeerConnection(){
         if(e.candidate){
             socket.emit("icecandidate",{
                 candidate: e.candidate,
-                roomId: roomId,
+                userName: nickName,
                 socketId: socket.id,
                 role: "streamer"
             })
@@ -109,7 +109,7 @@ function createPeerConnection(){
     // pc.onnegotiationneeded = async () =>{
     //     if(!pc.localDescription || !pc.remoteDescription){
     //         await pc.setLocalDescription(await pc.createOffer());
-    //         socket.emit("offer", {offer: pc.localDescription, roomId, socketId:socket.id})
+    //         socket.emit("offer", {offer: pc.localDescription, userName:nickName, socketId:socket.id})
     //     }
     //     console.log("signalingState in onnegotiationneeded event: ", pc.signalingState)
     //     console.log("streamer emitted offer in onnegotiationneeded event: ","remoteDES: ",pc.remoteDescription)
@@ -137,7 +137,7 @@ async function connectToPeer(socketId){
     socket.emit("offer",{
         offer:pc.localDescription,
         socketId: socket.id,
-        roomId:roomId
+        userName: nickName
     })
 }
 
@@ -161,7 +161,7 @@ async function handleOffer(socketId, offer){
         socket.emit("answer",{
             answer:pc.localDescription,
             socketId: socket.id,
-            roomId:roomId,
+            userName: nickName,
             role:"streamer"
         })
         console.log("Streamer created, set, and emitted localDes: ",pc.localDescription)
@@ -234,19 +234,9 @@ function setupSocketListeners(){
 
 // element event handling:
     // room number elements handling:
-roomNumberInput.addEventListener("change", (e) => {
-  roomNumberEl.innerHTML = `Room Number: ${e.target.value}`;
-  roomId = e.target.value;
-});
-roomNumberEl.addEventListener("click", (e) => {
-  if (roomId) {
-    navigator.clipboard
-      .writeText(roomId)
-      .then(() => {
-        alert("Room number copied to clipboard!");
-      })
-      .catch((err) => console.error("Failed to copy room number: ", err));
-  }
+nickNameInput.addEventListener("change", (e) => {
+  nickNameEl.innerHTML = `${e.target.value}'s room`;
+  nickName = e.target.value;
 });
 
     // start button:
@@ -261,10 +251,10 @@ stopButton.onclick = () => {
         localVideoElement.srcObject = null;
         startButton.disabled = false;
         stopButton.disabled = true;
-        roomId = null;
-        roomNumberInput.value = null;
-        roomNumberEl.style.display = "none";
-        roomNumberInputDiv.style.display = null;
+        nickName = null;
+        nickNameInput.value = null;
+        nickNameEl.style.display = "none";
+        nickNameInputDiv.style.display = null;
     
         // Close and clean up all peer connections
         peerConnectionMap.forEach((pc, socketId) => {
