@@ -48,6 +48,9 @@ io.on('connection',(socket)=>{
         const { roomId , role, userName } = data
         
         socket.join(roomId);
+        console.log(` ${socket.id} joined room : ${roomId}`)
+        socket.emit('joined-room', {roomId})
+        console.log(`${socket.id} joined room: ${roomId}`)
         
         // emitting 'peer-joined' message to streamer to establish PC:
         socket.to(roomId).emit('peer-joined', { socketId: socket.id, role, userName });
@@ -62,8 +65,8 @@ io.on('connection',(socket)=>{
             currentAudience.joinedRoom = roomId;
         }
         
-       console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
-       console.log(`someone joined room, audienceList : ${JSON.stringify([...audienceList])}`);
+    //    console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
+    //    console.log(`someone joined room, audienceList : ${JSON.stringify([...audienceList])}`);
        console.log(`availabeRooms: ${JSON.stringify([...availabelRoom])}`);
     });
 
@@ -79,40 +82,44 @@ io.on('connection',(socket)=>{
     })
 
     socket.on("createroom", (data) => {
-        const { userName,role } = data
+        const { userName,role } = data;
         const currentRoom = availabelRoom.get(socket.id);
         if(!currentRoom && role === "streamer"){
             availabelRoom.set(socket.id, {
                 host: userName,
-                roomId: socket.id
+                roomId: userName
                 // TODO: add needed information about the room
             })
             console.log("new streamer room creted: ", `roomId : ${socket.id}`)
+            socket.join(userName);
+            console.log(`in createroom event, streamer joined room: ${userName}`)
         }
-        socket.join(socket.id);
-        console.log(`available rooms: ${JSON.stringify([...availabelRoom])}`)
+        console.log(`available rooms: ${JSON.stringify([...availabelRoom.values()])}`)
     })
 
     socket.on("availabelrooms", () => {
-        const parsedMap = JSON.stringify([...availabelRoom])
-        console.log("parsedMap: ",parsedMap)
-        socket.to(socket.id).emit("availabelrooms", parsedMap)
+        // emitting available rooms to audience once connected:
+        const mapValues = availabelRoom.values();
+        const parsedMap = JSON.stringify([...mapValues])
+        socket.emit("availabelrooms", parsedMap)
+        console.log("emitted available room to : ", socket.id)
     })
 
 
     // RTCPeerConnection signling services:
     socket.on("offer", (data) =>{
-        // console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`)
+        console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`);
+        // console.log("got offer data: ",data)
         socket.to(data.roomId).emit('offer', data);
     });
 
     socket.on("answer", (data) => {
-        // console.log(`Recivied answer ${data.socketId} in room ${data.roomId}`)
+        console.log(`Recivied answer ${data.socketId} in room ${data.roomId}`);
         socket.to(data.roomId).emit("answer",data);
     });
 
     socket.on("icecandidate", (data) => {
-        // console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
+        console.log(`Recived ICECandidate from ${data.socketId} in room ${data.roomId}`)
         socket.to(data.roomId).emit('icecandidate',data);
     });
 

@@ -70,9 +70,8 @@ function connectSocketIo(){
     // join socket room:
     socket.on('connect', () => {
         // socket.emit("join-room",{ userName: nickName, role:"streamer"});
-        // TODO: dynanmic username here:
         socket.emit('createroom',{ userName: nickName, role:"streamer"})
-        console.log("streamer created room with room id of: ", socket.id);
+        console.log("streamer created room with room id of: ", nickName);
     })
 }
 
@@ -91,7 +90,8 @@ function createPeerConnection(){
                 candidate: e.candidate,
                 userName: nickName,
                 socketId: socket.id,
-                role: "streamer"
+                role: "streamer",
+                roomId: nickName
             })
             console.log("streamer ICE sent.")
         }else{
@@ -134,10 +134,14 @@ async function connectToPeer(socketId){
     const offer = await pc.createOffer();
     await pc.setLocalDescription(new RTCSessionDescription(offer));
 
+
+    //TODO: change the roomId to another string:
     socket.emit("offer",{
         offer:pc.localDescription,
         socketId: socket.id,
-        userName: nickName
+        userName: nickName,
+        role:"streamer",
+        roomId: nickName
     })
 }
 

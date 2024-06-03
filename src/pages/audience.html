@@ -30,7 +30,11 @@
                         <span class="focus-bg"></span>
                     </label>
                 </div>
+                <div>
+                    <select id="room-select"></select>
+                </div>
                 <button id="join-button"><span>Join</span></button>
+                <button id="refresh-available-rooms"><span>Refresh</span></button>
             </div>
         </div>
          <video id="videoElement" controls autoplay muted></video>
@@ -40,6 +44,5 @@
      </div>
 </body>
 <script src="../../node_modules/socket.io/client-dist/socket.io.js"></script>
-<!-- <script src="../scripts/audience.js"></script> -->
 <script src="../scripts/newAudience.js"></script>
 </html>
