@@ -31,9 +31,13 @@ roomSelectEl.addEventListener("change", (e) => {
 })
 
 refreshBtn.addEventListener("click", async (e) =>{
-    connectSocketIo();
-    socket.emit("availabelrooms");
-    await updateRoomSelect();
+    try {
+        const data = await emitWithPromise(socket, 'availabelrooms');
+        availabelRooms = JSON.parse(data);
+        await updateRoomSelect();
+    } catch (err) {
+        console.error("Error reciving available rooms: ",err)
+    }
 })
 
 joinBtn.addEventListener("click", handleJoinRoom);
@@ -45,7 +49,7 @@ function connectSocketIo() {
   socket.on('connect', () => {
     console.log(`Connected to server with socket ID: ${socket.id}`);
     // TODO: dynanmic roomId && userName here with availabel room id:
-    // socket.emit("availabelrooms")
+    socket.emit("availabelrooms")
   });
 
   socket.on('joined-room', (data) => {
@@ -55,7 +59,6 @@ function connectSocketIo() {
   // reciving availabel streaming rooms from server:
   socket.on("availabelrooms", async (data) => {
     availabelRooms = await JSON.parse(data);
-    await updateRoomSelect();
     console.log("GET availabelrooms from server: ", availabelRooms)
   })
 
@@ -95,7 +98,6 @@ function connectSocketIo() {
 //   });
 }
 
-// connect to server upon rendered:
 
 
 // Main functions
@@ -206,6 +208,16 @@ async function addNewIceCandidate( candidate) {
  }
 }
 
+// handle socket event responses with a promise
+function emitWithPromise( socket, event, data){
+    return new Promise((resolve) => {
+        socket.emit(event, data);
+        socket.on(event, (res) => {
+            resolve(res);
+        })
+    })
+}
+
 function updateRoomSelect(){
     console.log("updateRoomSelect logging: ",availabelRooms)
     roomSelectEl.innerHTML = '';
@@ -225,3 +237,5 @@ function updateRoomSelect(){
 }
 
 
+// connect to server upon rendered:
+connectSocketIo();
