@@ -102,11 +102,11 @@ h1{
 #nick-name-input:focus {
     background: rgba(142, 214, 243, 0.05);
     outline: none;
-    box-shadow: inset 0 -2px 0 var(--primary); /* Assuming --primary is defined somewhere in your CSS */
+    box-shadow: inset 0 -2px 0 rgba(254, 254, 254, 0.8); /* Assuming --primary is defined somewhere in your CSS */
 }
 
 #nick-name-input:focus + .label {
-    color: var(--primary); /* Assuming --primary is defined somewhere in your CSS */
+    color: rgba(255, 255, 255, 0.8); /* Assuming --primary is defined somewhere in your CSS */
     transform: translate3d(0, -12px, 0) scale(0.75);
 }
 
@@ -178,9 +178,7 @@ button{
     7px 7px 20px 0px rgba(0,0,0,.1),
     4px 4px 5px 0px rgba(0,0,0,.1);
     outline: none;
-
-    background: rgb(141, 199, 222);
-    background: linear-gradient(0deg, rgb(142, 214, 243) 0%, rgb(30, 74, 121) 100%);
+    background: linear-gradient(0deg, rgb(0, 183, 255, 0.824) 0%, rgb(0, 183, 255, 0.824) 100%);
     width: 130px;
     height: 40px;
     line-height: 42px;

@@ -13,6 +13,11 @@ h1{
     text-shadow: 1px -1px #fff, -1px 1px #999, -10px 10px 10px #80808080;
 }
 
+#wrapper{
+    display: flex;
+    flex-direction: row;
+}
+
 #container{
     display: flex;
     flex-direction: column;
@@ -24,16 +29,23 @@ h1{
     overflow: hidden;
 }
 
+#chat-room{
+    position: sticky;
+    width: 30vw;
+    height: 100vh;
+}
+
 /* room info part: */
 #room-info-container{
     display: flex;
     flex-direction: column;
-    width: 50%;
+    width: 70%;
+    height: min-content;
     justify-content: flex-start;
     align-items: flex-start;
 }
 
-#room-number-info{
+#nick-name-info{
     display: flex;
     width: 100%;
     justify-content: space-evenly;
@@ -44,15 +56,17 @@ h1{
     display: none;
 }
 
-#room-number-control{
+#nick-name-control{
     display: flex;
     flex-direction: row;
     width: 100%;
+    height: min-content;
     justify-content: space-evenly;
-    align-items: center;
+    align-items: last baseline;
+    margin-bottom: 1rem;
 }
 
-#room-number-input-div{
+#nick-name-input-div{
     display: flex;
     flex-direction: row;
     justify-content: space-evenly;
@@ -78,7 +92,7 @@ h1{
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(#000,.05);
+    background: rgba(#ffffffb6,.05);
     z-index: -1;
     transform: scaleX(0);
     transform-origin: left;
@@ -93,7 +107,7 @@ h1{
     overflow: hidden;
 }
 
-#room-number-input {
+#nick-name-input {
     -webkit-appearance: none;
     appearance: none;
     width: 100%;
@@ -109,28 +123,28 @@ h1{
     transition: all 0.15s ease;
 }
 
-#room-number-input:hover {
+#nick-name-input:hover {
     background: rgba(219, 219, 219, 0.685);
     box-shadow: inset 0 -1px 0 rgba(192, 192, 192, 0.5);
 }
 
-#room-number-input:not(:placeholder-shown) + .label {
-    color: rgba(226, 226, 226, 0.81);
+#nick-name-input:not(:placeholder-shown) + .label {
+    color: rgba(255, 255, 255, 0.81);
     transform: translate3d(0, -12px, 0) scale(0.75);
 }
 
-#room-number-input:focus {
+#nick-name-input:focus {
     background: rgba(142, 214, 243, 0.05);
     outline: none;
-    box-shadow: inset 0 -2px 0 var(--primary); /* Assuming --primary is defined somewhere in your CSS */
+    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.8); /* Assuming --primary is defined somewhere in your CSS */
 }
 
-#room-number-input:focus + .label {
-    color: var(--primary); /* Assuming --primary is defined somewhere in your CSS */
+#nick-name-input:focus + .label {
+    color: rgba(255, 255, 255, 0.8); /* Assuming --primary is defined somewhere in your CSS */
     transform: translate3d(0, -12px, 0) scale(0.75);
 }
 
-#room-number-input:focus + .label + .focus-bg {
+#nick-name-input:focus + .label + .focus-bg {
     transform: scaleX(1);
     transition: all 0.1s ease;
 }
@@ -154,9 +168,7 @@ button{
     7px 7px 20px 0px rgba(0,0,0,.1),
     4px 4px 5px 0px rgba(0,0,0,.1);
     outline: none;
-
-    background: rgb(141, 199, 222);
-    background: linear-gradient(0deg, rgb(142, 214, 243) 0%, rgb(30, 74, 121) 100%);
+    background: linear-gradient(0deg, rgb(0, 183, 255, 0.824) 0%, rgb(0, 183, 255, 0.824) 100%);
     width: 130px;
     height: 40px;
     line-height: 42px;
@@ -243,4 +255,31 @@ button span:hover:after {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #757575;
+}
+
+
+/* room select: */
+:root {
+    --arrow-bg: rgba(255, 255, 255, 0.3);
+    --arrow-icon: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg);
+    --option-bg: rgb(153, 153, 153);
+    --select-bg: rgba(203, 203, 203, 0.2);
+}
+
+#room-select{
+     /* Reset */
+    appearance: none;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    /* Personalize */
+    width: 15rem;
+    
+    padding: 1rem 4rem 1rem 1rem;
+    background: var(--arrow-icon) no-repeat right 0.8em center / 1.4em,
+        linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
+    color: rgb(201, 201, 201);
+    border-radius: 0.25em;
+    box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
 }

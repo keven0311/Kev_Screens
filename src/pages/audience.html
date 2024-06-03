@@ -16,30 +16,42 @@
      <div class="layer5"></div>
      <!-- main contents begin -->
      <h1>Audience Room</h1>
-     <div id="container">
-        <div id="room-info-container">
-            <div id="room-number-info">
-                <span class="room-number">Room Number:</span>
-                <span id="room-number-display"  class="room-number"></span>
-            </div>
-            <div id="room-number-control">
-                <div id="room-number-input-div">
-                    <label id="inp-label">
-                        <input id="room-number-input"/>
-                        <span class="label">Enter a room number:</span>
-                        <span class="focus-bg"></span>
-                    </label>
+     <div id="wrapper">
+         <div id="container">
+            <div id="room-info-container">
+                <div id="nick-name-info">
+                    <span class="nick-name">Room:</span>
+                    <span id="nick-name-display"  class="nick-name"></span>
                 </div>
-                <div>
-                    <select id="room-select"></select>
+                <div id="nick-name-control">
+                    <div id="nick-name-input-div">
+                        <label id="inp-label">
+                            <input id="nick-name-input"/>
+                            <span class="label">Enter a Nick Name:</span>
+                            <span class="focus-bg"></span>
+                        </label>
+                    </div>
+                    <div>
+                        <select id="room-select"></select>
+                    </div>
+                    <button id="join-button"><span>Join</span></button>
+                    <button id="refresh-available-rooms"><span>Refresh</span></button>
                 </div>
-                <button id="join-button"><span>Join</span></button>
-                <button id="refresh-available-rooms"><span>Refresh</span></button>
             </div>
-        </div>
-         <video id="videoElement" controls autoplay muted></video>
+             <video id="videoElement" controls autoplay ></video>
+             <div id="chat-room">
+    
+             </div>
+         </div>
          <div id="chat-room">
-
+            <div id="message">
+                <div id="incoming-message-div"></div>
+                <div id="outgoing-message-div"></div>
+            </div>
+            <div id="chat-input-div">
+                <input type="text" id="chat-input" placeholder="Type a message..."/>
+                <button id="chat-send-button">Send</button>
+            </div>
          </div>
      </div>
 </body>

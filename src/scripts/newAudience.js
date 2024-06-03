@@ -4,9 +4,9 @@ const PORT = window.env.PORT;
 
 // Element selection
 const videoElement = document.querySelector("#videoElement");
-const roomNumberInfo = document.querySelector("#room-number-info");
-const roomNumberDisplay = document.querySelector("#room-number-display");
-const roomNumberInput = document.querySelector("#room-number-input");
+const nickNameInfo = document.querySelector("#nick-name-info");
+const nickNameDisplay = document.querySelector("#nick-name-display");
+const nickNameInput = document.querySelector("#nick-name-input");
 const joinBtn = document.querySelector("#join-button");
 const chatRoom = document.querySelector("#chat-room");
 const refreshBtn = document.querySelector("#refresh-available-rooms");
@@ -14,14 +14,15 @@ const roomSelectEl = document.querySelector("#room-select");
 
 // Variables
 let socket;
+let nickName
 let roomId;
 let availabelRooms;
 let pc;
 
 // Event listeners
-roomNumberInput.addEventListener("change", (e) => {
-  roomId = e.target.value;
-  roomNumberDisplay.innerHTML = e.target.value;
+nickNameInput.addEventListener("change", (e) => {
+  nickName = e.target.value;
+  nickNameDisplay.innerHTML = `${e.target.value}'s stream`;
 });
 
 roomSelectEl.addEventListener("change", (e) => {
@@ -108,12 +109,12 @@ async function handleJoinRoom() {
     alert("Please select a room to join!");
     return;
   }
-  socket.emit("join-room", {roomId , userName: "shabi", role: "audience"});
+  socket.emit("join-room", {roomId , userName: nickName, role: "audience"});
   console.log(" audience joining room: ", roomId)
-  roomNumberInfo.style.display = "flex";
+  nickNameInfo.style.display = "flex";
 }
 
-function createPeerConnection(socketId) {
+function createPeerConnection() {
     return new Promise((resolve) => {
 
         pc = new RTCPeerConnection(peerConfiguration);
