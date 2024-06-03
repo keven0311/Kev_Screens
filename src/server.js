@@ -32,7 +32,7 @@ const availabelRoom = new Map();
 
 io.on('connection',(socket)=>{
     console.log("Someone has connected",socket.id);
-    const currentUserName = socket.handshake.auth.userName;
+    // const currentUserName = socket.handshake.auth.userName;
     // const password = socket.handshake.auth.password;
 
     // if(password !== "x"){
@@ -67,13 +67,15 @@ io.on('connection',(socket)=>{
         
     //    console.log(`${currentAudience?.userName}: ${socket.id} joined room: ${roomId}`)
     //    console.log(`someone joined room, audienceList : ${JSON.stringify([...audienceList])}`);
-       console.log(`availabeRooms: ${JSON.stringify([...availabelRoom])}`);
+    //    console.log(`availabeRooms: ${JSON.stringify([...availabelRoom])}`);
     });
 
-    socket.on("leaveRoom", (roomId) => {
+    socket.on("leave-room", (roomId) => {
         socket.leave(roomId);
         // reset audience joinedRoom:
-        currentAudience.joinedRoom = null;
+        if(currentAudience){
+            currentAudience.joinedRoom = "";
+        }
         // deleting the streaming room if it's a streamer:
         if(role == "streamer"){
             availabelRoom.delete(roomId);
@@ -126,7 +128,9 @@ io.on('connection',(socket)=>{
 
     // Chat room message singling services:
     socket.on("chat-room", (data) => {
-
+        const { message, roomId } = data;
+        socket.to(roomId).emit("chat-message", { message })
+        console.log(`Recived message: ${data.message} in room:${roomId}`)
     })
 
 

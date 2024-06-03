@@ -11,6 +11,7 @@ const joinBtn = document.querySelector("#join-button");
 const chatRoom = document.querySelector("#chat-room");
 const refreshBtn = document.querySelector("#refresh-available-rooms");
 const roomSelectEl = document.querySelector("#room-select");
+const leaveBtn = document.querySelector("#leave-button")
 
 // Variables
 let socket;
@@ -19,7 +20,7 @@ let roomId;
 let availabelRooms;
 let pc;
 
-// Event listeners
+// DOM elements event listeners:
 nickNameInput.addEventListener("change", (e) => {
   nickName = e.target.value;
   nickNameDisplay.innerHTML = `${e.target.value}'s stream`;
@@ -41,7 +42,22 @@ refreshBtn.addEventListener("click", async (e) =>{
     }
 })
 
+leaveBtn.addEventListener("click", (e) => {
+    try {
+        // emit socket server and leave current room
+        socket.emit('leave-room',{ roomId });
+        console.log(`audience id: ${socket.id} left room: ${roomId}`);
+        // close currernt RTCPeerConnection
+        pc.close();
+        console.log(`audience PC closed: `,pc);
+        pc = null;
+    } catch (err) {
+        console.error("Error leaving room: ",err)
+    }
+})
+
 joinBtn.addEventListener("click", handleJoinRoom);
+// ------------------------------------------------------------------------------
 
 // Socket.io connection
 function connectSocketIo() {
@@ -69,39 +85,48 @@ function connectSocketIo() {
 
   socket.on("icecandidate", async (data) => {
     console.log("Audience receiving ICE candidate: ", data.candidate);
-    if(data.role == "audience") return;
-    await addNewIceCandidate(data.candidate);
+    if(data.role != "streamer") {
+        return;
+    }else{
+        await addNewIceCandidate(data.candidate);
+    }
   });
 
   socket.on("offer", async (data) => {
     console.log("Audience receiving offer");
     const { socketId , offer, role, roomId } = data;
-    if(role === 'audience') return;
-    await handleOffer( offer); 
+    if(role != 'streamer'){
+        return;
+    }else{
+        await handleOffer( offer); 
+    }
   });
 
   socket.on("answer", async (data) => {
     console.log('Receiving answer from server: ', data.answer);
     const { socketId, answer, role } = data;
-    if(role === "audience") return;
-    await handleAnswer(answer);
+    if(role != "streamer"){
+        return;
+    }else{
+        await handleAnswer(answer);
+    }
   });
 
-  socket.on('peer-joined', async (data) => {
-    console.log('Peer joined the room');
-    const { socketId } = data;
-    // await sendOffer(socketId);
-  });
+//   socket.on('peer-joined', async (data) => {
+//     console.log('Peer joined the room');
+//     const { socketId } = data;
+//     // await sendOffer(socketId);
+//   });
 
 //   socket.on('peer-disconnected', (data) => {
 //     console.log(`Peer ${data.socketId} disconnected`);
 //     handlePeerDisconnection(data.socketId);
 //   });
 }
+// ------------------------------------------------------------------------------
 
 
-
-// Main functions
+// Peer connection event handling:
 async function handleJoinRoom() {
     roomId = roomSelectEl.value;
     console.log("handleJoinRoom roomId: ", roomId);
@@ -197,7 +222,7 @@ async function handleAnswer( answer) {
         console.error("Erroring handleAnswer: ",err);
     }
 }
-
+// ------------------------------------------------------------------------------
 
 // ultis:
 async function addNewIceCandidate( candidate) {
@@ -219,6 +244,7 @@ function emitWithPromise( socket, event, data){
     })
 }
 
+// update available room into DOM
 function updateRoomSelect(){
     console.log("updateRoomSelect logging: ",availabelRooms)
     roomSelectEl.innerHTML = '';
