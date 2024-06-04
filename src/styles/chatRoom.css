@@ -8,7 +8,7 @@
     border: 1px solid rgba(133, 133, 133, 0.8);
     border-radius: 2%;
     width: 16%;
-    height: 91vh;
+    height: 94vh;
     margin-right: 0;
     margin-left:1.5rem;
     background: rgba(57, 57, 57, 0.901);
@@ -19,7 +19,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    height: 8%;
+    height: 9%;
     width: 95%;
     margin-top: 1rem;
     padding: 0.5rem;

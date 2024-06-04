@@ -255,8 +255,6 @@ stopButton.onclick = () => {
         localVideoElement.srcObject = null;
         startButton.disabled = false;
         stopButton.disabled = true;
-        nickName = null;
-        nickNameInput.value = null;
         nickNameEl.style.display = "none";
         nickNameInputDiv.style.display = null;
     

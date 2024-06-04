@@ -17,6 +17,7 @@ const leaveBtn = document.querySelector("#leave-button")
 let socket;
 let nickName
 let roomId;
+let streamerSocketId;
 let availabelRooms;
 let peerConnectionMap = new Map();
 
@@ -43,13 +44,15 @@ refreshBtn.addEventListener("click", async (e) =>{
 
 leaveBtn.addEventListener("click", (e) => {
     try {
-        const pc = peerConnectionMap.get(socket.id)
+        const pc = peerConnectionMap.get(streamerSocketId)
         // emit socket server and leave current room
         socket.emit('leave-room',{ roomId, role:"audience" });
         console.log(`audience id: ${socket.id} left room: ${roomId}`);
         // close currernt RTCPeerConnection
-        pc.close();
-        peerConnectionMap.delete(socket.id);
+        if(pc){
+            pc.close();
+        }
+        peerConnectionMap.delete(streamerSocketId);
         console.log(`audience PC closed: `,pc);
     } catch (err) {
         console.error("Error leaving room: ",err)
@@ -103,6 +106,7 @@ function connectSocketIo() {
         console.log("already connected to streamer.... skipping this offer")
         return;
     }else{
+        streamerSocketId = data.socketId;
         await handleOffer( socketId ,offer); 
     }
     

@@ -15,7 +15,7 @@ html,body{
     flex-direction: column;
     align-items: flex-end;
     justify-content: space-evenly;
-    height: auto;
+    height: 97vh;
     width: 80%;
     overflow: hidden;
     border: 2px solid rgba(97, 97, 97, 0.56);
@@ -32,8 +32,9 @@ html,body{
     z-index: 10;
     width: 100%;
     height: auto;
-    max-width: 90vw;
-    object-fit: cover;
+    max-width: 87vw;
+    object-fit: contain;
+    overflow: auto;
 }
 
 

@@ -80,7 +80,7 @@ io.on('connection',(socket)=>{
         if(data.role == "streamer"){
             availabelRoom.delete(roomId);
         }
-        console.log(`${socket.id} left room: ${roomId}`)
+        console.log(`${socket.id} left room: ${data.roomId}`)
     })
 
     socket.on("createroom", (data) => {

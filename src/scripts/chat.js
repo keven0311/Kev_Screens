@@ -24,8 +24,10 @@ function appendMessage(type, data) {
     theMessage.className = `${type}-message`;
     theMessage.textContent = data.message;
     
-    theMessageDiv.appendChild(messageUsername);
-    theMessageDiv.appendChild(theMessage);
+    messageDiv.appendChild(messageUsername);
+    messageDiv.appendChild(theMessage);
+    
+    theMessageDiv.appendChild(messageDiv);
 }
 
 // Listen for incoming messages
