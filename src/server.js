@@ -111,8 +111,14 @@ io.on('connection',(socket)=>{
     // RTCPeerConnection signling services:
     socket.on("offer", (data) =>{
         console.log(`Recived offer from ${data.socketId} in room ${data.roomId}`);
-        // console.log("got offer data: ",data)
-        socket.to(data.roomId).emit('offer', data);
+        const { role , roomId} = data;
+        if(role == 'streamer'){
+            // emitting streamer offer to audience
+            socket.to(roomId).emit('streameroffer', data);
+        }else if( role == 'audience'){
+            // incase future audience need send offer out
+            socket.to(roomId).emit('audienceoffer',data)
+        }
     });
 
     socket.on("answer", (data) => {

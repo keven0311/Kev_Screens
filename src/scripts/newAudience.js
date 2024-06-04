@@ -23,7 +23,6 @@ let peerConnectionMap = new Map();
 // DOM elements event listeners:
 nickNameInput.addEventListener("change", (e) => {
   nickName = e.target.value;
-  nickNameDisplay.innerHTML = `${e.target.value}'s stream`;
 });
 
 roomSelectEl.addEventListener("change", (e) => {
@@ -63,14 +62,14 @@ joinBtn.addEventListener("click", handleJoinRoom);
 // Socket.io connection
 function connectSocketIo() {
 
-    console.log("socket before connect to server: ",socket)
-
   socket = io.connect(`https://${BASE_URL}:${PORT}`);
+
 
   socket.on('connect', () => {
     console.log(`Connected to server with socket ID: ${socket.id}`);
     // TODO: dynanmic roomId && userName here with availabel room id:
     socket.emit("availabelrooms")
+    
   });
 
   socket.on('joined-room', (data) => {
@@ -93,18 +92,20 @@ function connectSocketIo() {
     if(data.role != "streamer") {
         return;
     }else{
-        await addNewIceCandidate( socket.id,data.candidate);
+        await addNewIceCandidate( data.socketId ,data.candidate);
     }
   });
 
-  socket.on("offer", async (data) => {
+  socket.on("streameroffer", async (data) => {
     console.log("Audience receiving offer");
     const { socketId , offer, role, roomId } = data;
-    if(role != 'streamer'){
+    if(peerConnectionMap.get(socketId)){
+        console.log("already connected to streamer.... skipping this offer")
         return;
     }else{
-        await handleOffer( socket.id ,offer); 
+        await handleOffer( socketId ,offer); 
     }
+    
   });
 
   socket.on("answer", async (data) => {
@@ -117,16 +118,6 @@ function connectSocketIo() {
     }
   });
 
-//   socket.on('peer-joined', async (data) => {
-//     console.log('Peer joined the room');
-//     const { socketId } = data;
-//     // await sendOffer(socketId);
-//   });
-
-//   socket.on('peer-disconnected', (data) => {
-//     console.log(`Peer ${data.socketId} disconnected`);
-//     handlePeerDisconnection(data.socketId);
-//   });
 }
 // ------------------------------------------------------------------------------
 
@@ -134,19 +125,24 @@ function connectSocketIo() {
 // Peer connection event handling:
 async function handleJoinRoom() {
     roomId = roomSelectEl.value;
-    console.log("handleJoinRoom roomId: ", roomId);
   if (!roomId) {
     alert("Please select a room to join!");
+    return;
+  }
+  if(!nickName){
+    alert("Please pick a Nick Name first!");
     return;
   }
   socket.emit("join-room", {roomId , userName: nickName, role: "audience"});
   console.log(" audience joining room: ", roomId)
   nickNameInfo.style.display = "flex";
+  nickNameDisplay.innerHTML = `${roomSelectEl.value}'s stream`;
 }
 
 function createPeerConnection(socketId) {
     return new Promise((resolve, rejct) => {
         if(peerConnectionMap.get(socketId)){
+            console.log("createPC function socketId: ", socketId);
             console.error(" THIS ID EXSISTS IN THE MAP!!!!!  ")
             rejct();
         }
@@ -213,6 +209,7 @@ async function sendOffer(socketId) {
 
 async function handleOffer( socketId, offer) {
     try {
+        console.log("handleOffer handling...")
         const pc = await createPeerConnection(socketId);
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
@@ -258,12 +255,10 @@ function emitWithPromise( socket, event, data){
 
 // update available room into DOM
 function updateRoomSelect(){
-    console.log("updateRoomSelect logging: ",availabelRooms)
     roomSelectEl.innerHTML = '';
     return new Promise((resolve) => {
         availabelRooms.forEach( r =>{
             const optionEl = document.createElement("option");
-            console.log("logging or r: ",r)
             optionEl.value = r.roomId;
             optionEl.innerHTML = r.host;
             roomSelectEl.appendChild(optionEl);
