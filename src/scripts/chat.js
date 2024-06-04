@@ -1,33 +1,34 @@
 // Get references to DOM elements
 const chatInput = document.getElementById('chat-input');
 const chatSendButton = document.getElementById('chat-send-button');
-const incomingMessageDiv = document.getElementById('incoming-message-div');
-const outgoingMessageDiv = document.getElementById('outgoing-message-div');
+const theMessageDiv = document.getElementById('message');
 
 // Send message on button click
 chatSendButton.addEventListener('click', () => {
     const message = chatInput.value.trim();
     if (message && roomId) {
-        socket.emit('chat-room', { message, roomId});
-        appendMessage('outgoing', message);
+        socket.emit('chat-room', { message, roomId,nickName});
+        appendMessage('outgoing', {message, nickName:"You"});
         chatInput.value = '';
     }
 });
 
 // Append message to the chat
-function appendMessage(type, message) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `${type}-message`;
-    messageElement.textContent = message;
-
-    if (type === 'incoming') {
-        incomingMessageDiv.appendChild(messageElement);
-    } else {
-        outgoingMessageDiv.appendChild(messageElement);
-    }
+function appendMessage(type, data) {
+    const messageDiv = document.createElement('div');
+    const messageUsername = document.createElement('h5');
+    const theMessage = document.createElement("span");
+    messageDiv.className = `${type}-message-box`;
+    messageUsername.className = `${type}-message-username`;
+    messageUsername.textContent = `${data.nickName}:`
+    theMessage.className = `${type}-message`;
+    theMessage.textContent = data.message;
+    
+    theMessageDiv.appendChild(messageUsername);
+    theMessageDiv.appendChild(theMessage);
 }
 
 // Listen for incoming messages
 socket.on('chat-message', (data) => {
-    appendMessage('incoming', data.message);
+    appendMessage('incoming', data);
 });

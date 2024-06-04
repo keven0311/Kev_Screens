@@ -6,6 +6,8 @@
     <title>Audience Room</title>
     <link rel="stylesheet" href="../styles/stars.css">
     <link rel="stylesheet" href="../styles/audience.css">
+    <link rel="stylesheet" href="../styles/chatRoom.css">
+
 </head>
 <body>
      <!-- stars effects -->
@@ -15,11 +17,11 @@
      <div class="layer4"></div>
      <div class="layer5"></div>
      <!-- main contents begin -->
-     <h1>Audience Room</h1>
      <div id="wrapper">
          <div id="container">
-            <div id="room-info-container">
-                <div id="nick-name-info">
+             <div id="room-info-container">
+                 <h1>Audience Room</h1>
+                 <div id="nick-name-info">
                     <span class="nick-name">Room:</span>
                     <span id="nick-name-display"  class="nick-name">Hov Wolf God</span>
                 </div>
@@ -42,13 +44,30 @@
              <video id="videoElement" controls autoplay ></video>
          </div>
          <div id="chat-room">
-            <div id="message">
-                <div id="incoming-message-div"></div>
-                <div id="outgoing-message-div"></div>
+             <div id="chats-header">
+                 Chats
+             </div>
+            <div id="message">   
+                <div class="incoming-message-box">
+                    <h5 class="incoming-message-username">Kev:</h5>
+                    <span class="incoming-message">你好菜啊，我吐了！</span>
+                </div>
+                <div class="incoming-message-box">
+                    <h5 class="incoming-message-username">Kev:</h5>
+                    <span class="incoming-message">Go back to school! You suck at coding!</span>
+                </div>
+                <div class="incoming-message-box">
+                    <h5 class="incoming-message-username">Kev:</h5>
+                    <span class="incoming-message">OMG you sucks</span>
+                </div>
+                <div class="outgoing-message-box">
+                    <h5 class="outgoing-message-username">You</h5>
+                    <span class="outgoing-message">Good job keep going!</span>
+                </div>
             </div>
             <div id="chat-input-div">
                 <input type="text" id="chat-input" placeholder="Type a message..."/>
-                <button id="chat-send-button">Send</button>
+                <button id="chat-send-button">Chat</button>
             </div>
          </div>
      </div>

@@ -1,0 +1,108 @@
+/* chat room */
+#chat-room{
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 1rem;
+    border: 1px solid rgba(133, 133, 133, 0.8);
+    border-radius: 2%;
+    width: 16%;
+    height: 91vh;
+    margin-right: 0;
+    margin-left:1.5rem;
+    background: rgba(57, 57, 57, 0.901);
+    box-shadow: -5px 5px 10px 0px rgba(65, 179, 255, 0.8);
+}
+
+#chat-input-div{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    height: 8%;
+    width: 95%;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border: 1px solid rgba(224, 224, 224, 0.8);
+    box-shadow: -5px -5px 10px 0px rgba(78, 183, 248, 0.8);
+}
+
+#chat-input{
+    height: 95%;
+    width: 97%;
+}
+
+#chat-send-button{
+    width: 100%;
+    height: 40%;  
+    margin-top: 5px;
+}
+
+#message{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    color: white;
+    font-size: 1.3rem;
+    border-bottom: 2px solid rgba(224,224,224,0.8);
+    margin-bottom: 5px;
+    padding: 10px;
+    overflow:auto;
+}
+
+#chats-header{
+    text-align: center;
+    font-size: 1.5rem;
+    color: #a25efa;
+    border-bottom: 2px solid rgba(224,224,224,0.8);
+    text-shadow: 1px -1px #b794e5, -1px 1px #999, -10px 10px 10px #80808080;
+}
+
+.incoming-message-box{
+    background: rgba(0, 0, 0, 0.546);
+    padding: 5px;
+    box-sizing: border-box;
+    border: 1px solid rgba(106, 106, 106, 0.8);
+    box-shadow: 1px 1px 2px 1px rgba(207, 49, 255, 0.674);
+    margin-bottom: 7px;
+    width: 80%;
+}
+
+.incoming-message-username{
+    color: #a25efa;
+    margin-top: 1px;
+    margin-bottom: 3px;
+    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+}
+
+.incoming-message{
+    margin: 1px;
+    font-size: 1rem;
+}
+
+.outgoing-message-box{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    align-self: flex-end;
+    width: 80%;
+    background: rgba(0, 0, 0, 0.546);
+    padding: 5px;
+    margin-bottom: 5px;
+    box-sizing: border-box;
+    border: 1px solid rgba(106, 106, 106, 0.8);
+    overflow:visible;
+    box-shadow: -2px 2px 3px 1px rgba(102, 255, 0, 0.674);
+}
+
+.outgoing-message-username{
+    color: #9bff0f;
+    margin-top: 0;
+    margin-bottom: 4px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.outgoing-message{
+    margin: 1px;
+    font-size: 1rem;
+}
