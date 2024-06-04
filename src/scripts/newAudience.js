@@ -18,7 +18,7 @@ let socket;
 let nickName
 let roomId;
 let availabelRooms;
-let pc;
+let peerConnectionMap = new Map();
 
 // DOM elements event listeners:
 nickNameInput.addEventListener("change", (e) => {
@@ -44,13 +44,14 @@ refreshBtn.addEventListener("click", async (e) =>{
 
 leaveBtn.addEventListener("click", (e) => {
     try {
+        const pc = peerConnectionMap.get(socket.id)
         // emit socket server and leave current room
-        socket.emit('leave-room',{ roomId });
+        socket.emit('leave-room',{ roomId, role:"audience" });
         console.log(`audience id: ${socket.id} left room: ${roomId}`);
         // close currernt RTCPeerConnection
         pc.close();
+        peerConnectionMap.delete(socket.id);
         console.log(`audience PC closed: `,pc);
-        pc = null;
     } catch (err) {
         console.error("Error leaving room: ",err)
     }
@@ -61,6 +62,9 @@ joinBtn.addEventListener("click", handleJoinRoom);
 
 // Socket.io connection
 function connectSocketIo() {
+
+    console.log("socket before connect to server: ",socket)
+
   socket = io.connect(`https://${BASE_URL}:${PORT}`);
 
   socket.on('connect', () => {
@@ -81,6 +85,7 @@ function connectSocketIo() {
 
   socket.on('disconnect', () => {
     console.log(`Disconnected from server with socket ID: ${socket.id}`);
+    peerConnectionMap.delete(socket.id);
   });
 
   socket.on("icecandidate", async (data) => {
@@ -88,7 +93,7 @@ function connectSocketIo() {
     if(data.role != "streamer") {
         return;
     }else{
-        await addNewIceCandidate(data.candidate);
+        await addNewIceCandidate( socket.id,data.candidate);
     }
   });
 
@@ -98,7 +103,7 @@ function connectSocketIo() {
     if(role != 'streamer'){
         return;
     }else{
-        await handleOffer( offer); 
+        await handleOffer( socket.id ,offer); 
     }
   });
 
@@ -108,7 +113,7 @@ function connectSocketIo() {
     if(role != "streamer"){
         return;
     }else{
-        await handleAnswer(answer);
+        await handleAnswer(socket.id ,answer);
     }
   });
 
@@ -139,10 +144,14 @@ async function handleJoinRoom() {
   nickNameInfo.style.display = "flex";
 }
 
-function createPeerConnection() {
-    return new Promise((resolve) => {
-
-        pc = new RTCPeerConnection(peerConfiguration);
+function createPeerConnection(socketId) {
+    return new Promise((resolve, rejct) => {
+        if(peerConnectionMap.get(socketId)){
+            console.error(" THIS ID EXSISTS IN THE MAP!!!!!  ")
+            rejct();
+        }
+        const pc = new RTCPeerConnection(peerConfiguration);
+        
       
         pc.ontrack = e => {
             console.log("recived track...");
@@ -183,15 +192,16 @@ function createPeerConnection() {
             // }
         }
         
+        peerConnectionMap.set(socketId,pc)
         console.log("NEW PeerConnection created.",pc)
-        resolve();
+        resolve(pc);
     })
   
 }
 
 async function sendOffer(socketId) {  
     try {
-        let pc = await createPeerConnection(socketId)
+        const pc = await createPeerConnection(socketId);
         const offer = await pc.createOffer();
         await pc.setLocalDescription(new RTCSessionDescription(offer))
         socket.emit("offer", { offer: pc.localDescription, roomId, socketId:socket.id})
@@ -201,9 +211,9 @@ async function sendOffer(socketId) {
     } 
 }
 
-async function handleOffer( offer) {
+async function handleOffer( socketId, offer) {
     try {
-        await createPeerConnection();
+        const pc = await createPeerConnection(socketId);
         await pc.setRemoteDescription(new RTCSessionDescription(offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -214,8 +224,9 @@ async function handleOffer( offer) {
     }
 }
 
-async function handleAnswer( answer) {
+async function handleAnswer( socketId, answer) {
     try {
+        const pc = peerConnectionMap.get(socketId)
         await pc.setRemoteDescription(new RTCSessionDescription(answer));
         console.log("audience recived answer, set to remoteDES: ", pc.remoteDescription)
     } catch (err) {
@@ -225,8 +236,9 @@ async function handleAnswer( answer) {
 // ------------------------------------------------------------------------------
 
 // ultis:
-async function addNewIceCandidate( candidate) {
+async function addNewIceCandidate( socketId,candidate) {
  try {
+    const pc = peerConnectionMap.get(socketId)
     await pc.addIceCandidate(new RTCIceCandidate(candidate))
     console.log("ICE candidate added!")
  } catch (err) {

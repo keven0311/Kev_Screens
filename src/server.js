@@ -70,14 +70,14 @@ io.on('connection',(socket)=>{
     //    console.log(`availabeRooms: ${JSON.stringify([...availabelRoom])}`);
     });
 
-    socket.on("leave-room", (roomId) => {
-        socket.leave(roomId);
+    socket.on("leave-room", (data) => {
+        socket.leave(data.roomId);
         // reset audience joinedRoom:
         if(currentAudience){
             currentAudience.joinedRoom = "";
         }
         // deleting the streaming room if it's a streamer:
-        if(role == "streamer"){
+        if(data.role == "streamer"){
             availabelRoom.delete(roomId);
         }
         console.log(`${socket.id} left room: ${roomId}`)
@@ -142,6 +142,7 @@ io.on('connection',(socket)=>{
             if(joinedRoom){
                 socket.to(joinedRoom).emit('peer-disconnected', {socketId:socket.id});
             }
+            socket.leave(joinedRoom);
             audienceList.delete(socket.id)
         }
         
