@@ -6,6 +6,8 @@ const {
   dialog,
 } = require("electron");
 const path = require("path");
+const peerConfiguration = require("./src/config/peerConfiguration")
+require("dotenv").config();
 
 const rootCaCertPath = path.join(__dirname, "certs/ca.crt");
 app.commandLine.appendSwitch("certificate-file", rootCaCertPath);
@@ -37,13 +39,14 @@ const createHomeWindow = () => {
           width: 1920,
           height: 1080,
           webPreferences: {
-            nodeIntegration: true,
+            // nodeIntegration: true,
             contextIsolation: true,
-            preload: path.join(__dirname, './preload.js'),
+            preload: path.join(__dirname, 'preload.js'),
           },
           // autoHideMenuBar: true,
         });
         homeWindow.loadFile(path.join(__dirname, "/src/pages/home.html"));
+        homeWindow.webContents.openDevTools();
       } else {
         console.log("User denied permission to capture screen.");
         app.quit();
@@ -61,9 +64,9 @@ const createRoomWindow = () => {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
+      // nodeIntegration: true,
       contextIsolation: true,
-      preload: path.join(__dirname, './preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
     },
     autoHideMenuBar: true,
   });
@@ -77,9 +80,9 @@ const createAudienceWindow = () => {
     width: 800,
     height: 600,
     webPreferences: {
-      nodeIntegration: true,
+      // nodeIntegration: true,
       contextIsolation: true,
-      preload: path.join(__dirname, './preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
     },
     autoHideMenuBar: true,
   });
@@ -108,6 +111,16 @@ ipcMain.handle("getSources", async () => {
   return await desktopCapturer.getSources({ types: ["window", "screen"] });
 });
 
+ipcMain.handle("env", () => {
+  const port = process.env.PORT;
+  const base_url = process.env.BASE_URL;
+  return { port, base_url };
+});
+
+ipcMain.handle("peerConfiguration", ()=>{
+  return peerConfiguration;
+})
+
 ipcMain.on("create-room", () => {
   createRoomWindow();
 });
@@ -115,3 +128,4 @@ ipcMain.on("create-room", () => {
 ipcMain.on("audience-room", () => {
   createAudienceWindow();
 });
+

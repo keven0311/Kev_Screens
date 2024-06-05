@@ -1,6 +1,19 @@
-const peerConfiguration = window.peerConfig.config;
-const BASE_URL = window.env.BASE_URL;
-const PORT = window.env.PORT;
+// getting global variables from Electron main process:
+let PORT;
+let BASE_URL;
+let peerConfiguration;
+async function getEnv(){
+  await window.ipcRenderer.invoke("env").then((res) =>{
+    PORT = res.port;
+    BASE_URL = res.base_url;
+  }).catch(err => console.error(err));
+}
+async function getPeerConfig(){
+   await window.ipcRenderer.invoke("peerConfiguration").then((res) => {
+    peerConfiguration = res;
+   }).catch(err => console.error(err));
+}
+
 
 // element selecting:
 const localVideoElement = document.querySelector("#local-video");
@@ -10,7 +23,7 @@ const nickNameInput = document.querySelector("#nick-name-input");
 const displaySelectMenu = document.getElementById("selectMenu");
 const getSourcesButton = document.getElementById("getSourcesButton");
 
-// variables initializing:
+// local variables initializing:
 let socket;
 let nickName;
 let localStream;
@@ -23,6 +36,8 @@ async function startStreaming(){
         return;
     }
     await fetchUserMedia();
+    await getEnv();
+    await getPeerConfig();
     connectSocketIo();
     
     // start&stop button toggle:

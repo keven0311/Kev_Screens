@@ -30,7 +30,4 @@ function appendMessage(type, data) {
     theMessageDiv.appendChild(messageDiv);
 }
 
-// Listen for incoming messages
-socket.on('chat-message', (data) => {
-    appendMessage('incoming', data);
-});
+
