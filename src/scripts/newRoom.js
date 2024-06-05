@@ -22,9 +22,11 @@ const nickNameInputDiv = document.querySelector("#nick-name-input-div");
 const nickNameInput = document.querySelector("#nick-name-input");
 const displaySelectMenu = document.getElementById("selectMenu");
 const getSourcesButton = document.getElementById("getSourcesButton");
+const chatRoomMessageDiv = document.querySelector("#message");
 
 // local variables initializing:
 let socket;
+let roomId;
 let nickName;
 let localStream;
 let peerConnectionMap = new Map();
@@ -35,6 +37,7 @@ async function startStreaming(){
         alert("Please enter a Nick Name first, before start streaming...");
         return;
     }
+    roomId = nickName;
     await fetchUserMedia();
     await getEnv();
     await getPeerConfig();
@@ -248,6 +251,11 @@ function setupSocketListeners(){
     socket.on('peer-disconnected',(data) => {
         handlePeerDisconnection(data.socketId);
     })
+
+    // Listen for incoming messages
+    socket.on("chat-message", (data) => {
+        appendMessage("incoming", data);
+    });
 }
 
 
@@ -272,6 +280,9 @@ stopButton.onclick = () => {
         stopButton.disabled = true;
         nickNameEl.style.display = "none";
         nickNameInputDiv.style.display = null;
+
+        //cleaning chat message when stop streaming:
+        chatRoomMessageDiv.innerHTML = '';
     
         // Close and clean up all peer connections
         peerConnectionMap.forEach((pc, socketId) => {

@@ -29,6 +29,7 @@ const chatRoom = document.querySelector("#chat-room");
 const refreshBtn = document.querySelector("#refresh-available-rooms");
 const roomSelectEl = document.querySelector("#room-select");
 const leaveBtn = document.querySelector("#leave-button");
+const chatRoomMessageDiv = document.querySelector("#message");
 
 // Variables
 let socket;
@@ -71,6 +72,10 @@ leaveBtn.addEventListener("click", (e) => {
     }
     peerConnectionMap.delete(streamerSocketId);
     console.log(`audience PC closed: `, pc);
+
+    // cleaning out the chat room when leaving room:
+    chatRoomMessageDiv.innerHTML = '';
+    nickNameDisplay.innerHTML = '';
   } catch (err) {
     console.error("Error leaving room: ", err);
   }

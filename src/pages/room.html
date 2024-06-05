@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../styles/stars.css">
     <link rel="stylesheet" href="../styles/room.css">
+    <link rel="stylesheet" href="../styles/chatRoom.css">
     <title>Kev Screens</title>
 </head>
 <body>
@@ -15,34 +16,63 @@
     <div class="layer4"></div>
     <div class="layer5"></div>
     <!-- main contents begin -->
-    <h1>Kev Screens</h1>
-    <div id="nick-name-info-container">
-        <div id="nick-name"></div>
-        <div id="nick-name-input-div">
-            <label id="inp-label">
-                <input id="nick-name-input"/>
-                <span class="label">Enter a Nick Name:</span>
-                <span class="focus-bg"></span>
-            </label>
+    
+    <div id="wrapper">
+        <div id="container">
+            <h1>Kev Screens</h1>
+            <div id="nick-name-info-container">
+                <div id="nick-name"></div>
+                <div id="nick-name-input-div">
+                    <label id="inp-label">
+                        <input id="nick-name-input"/>
+                        <span class="label">Enter a Nick Name:</span>
+                        <span class="focus-bg"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="control_menu">
+                <button id="startButton">
+                    <span>
+                        Start
+                    </span>
+                </button>
+                <button id="stopButton"><span>Stop</span></button>
+                <button id="getSourcesButton"><span>Get Sources</span></button>
+                <select id="selectMenu"></select>
+            </div> 
+            <video id="local-video" autoplay controls muted></video> 
         </div>
-    </div>
-    <div id="container">
-        <div id="control_menu">
-            <button id="startButton">
-                <span>
-                    Start
-                </span>
-            </button>
-            <button id="stopButton"><span>Stop</span></button>
-            <button id="getSourcesButton"><span>Get Sources</span></button>
-            <select id="selectMenu"></select>
-        </div>
-        <div id="video_container">
-                <video id="local-video" autoplay controls muted></video>
+        <div id="chat-room">
+            <div id="chats-header">
+                Chats
+            </div>
+           <div id="message">   
+               <div class="incoming-message-box">
+                   <h5 class="incoming-message-username">Kev:</h5>
+                   <span class="incoming-message">你好菜啊，我吐了！</span>
+               </div>
+               <div class="incoming-message-box">
+                   <h5 class="incoming-message-username">Kev:</h5>
+                   <span class="incoming-message">Go back to school! You suck at coding!</span>
+               </div>
+               <div class="incoming-message-box">
+                   <h5 class="incoming-message-username">Kev:</h5>
+                   <span class="incoming-message">OMG you sucks</span>
+               </div>
+               <div class="outgoing-message-box">
+                   <h5 class="outgoing-message-username">You</h5>
+                   <span class="outgoing-message">Good job keep going!</span>
+               </div>
+           </div>
+           <div id="chat-input-div">
+               <input type="text" id="chat-input" placeholder="Type a message..."/>
+               <button id="chat-send-button">Chat</button>
+           </div>
         </div>
     </div>
 </body>
 <script src="../../node_modules/socket.io/client-dist/socket.io.js"></script>
 <!-- <script src="/socket.io/socket.io.js"></script> -->
 <script src="../scripts/newRoom.js"></script>
+<script src="../scripts/chat.js"></script>
 </html>

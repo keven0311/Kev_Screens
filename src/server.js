@@ -135,7 +135,7 @@ io.on('connection',(socket)=>{
     // Chat room message singling services:
     socket.on("chat-room", (data) => {
         const { message, roomId, nickName } = data;
-        socket.to(roomId).emit("chat-message", { message })
+        socket.to(roomId).emit("chat-message", data)
         console.log(`Recived message: ${data.message} in room:${roomId}`)
     })
 

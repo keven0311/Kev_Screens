@@ -2,6 +2,7 @@ html,body{
     margin: 0;
     padding: 0;
     background: black;
+    overflow: hidden;
 }
 
 h1{
@@ -11,6 +12,13 @@ h1{
     color: white;
     font-size: 3.5rem;
     text-shadow: 1px -1px #fff, -1px 1px #999, -10px 10px 10px #80808080;
+}
+
+#wrapper{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    width: 100vw;
 }
 
 
@@ -120,9 +128,11 @@ h1{
 #container{
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 98vh;
+    width: 80vw;
     overflow: hidden;
     z-index: 1;
+    margin-left: 20px;
 }
 
 #control_menu{
@@ -249,16 +259,6 @@ button span:hover:after {
       
 
 /*  Video element styleing: */
-#video_container{
-    margin-bottom: 20px;
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    width: 100vw;
-    height: 70vh;
-    background-color: black;
-} 
 
 #username{
     color:white;
@@ -268,12 +268,13 @@ h4{
 }
 
 #local-video{
-    height: 90%;
-    width: 100%;
-    object-fit: contain;
+    flex:1;
     z-index: 10;
-    background-color: black;
-    position: relative;
+    width: 100%;
+    height: auto;
+    max-width: 87vw;
+    object-fit: contain;
+    overflow: auto;
 }
 
 /* scroll bar: */
